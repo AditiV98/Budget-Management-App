@@ -5,6 +5,7 @@ import "strings"
 type Transactions struct {
 	Type      []string `json:"type"`
 	UserID    int      `json:"userID"`
+	AccountID []int    `json:"accountID"`
 	StartDate string   `json:"startDate"`
 	EndDate   string   `json:"endDate"`
 	Category  []string `json:"category"`
@@ -32,6 +33,14 @@ func (t *Transactions) WhereClause() (clause string, values []interface{}) {
 	if t.UserID != 0 {
 		t.clause += ` t.user_id=? AND`
 		t.args = append(t.args, t.UserID)
+	}
+
+	if len(t.AccountID) != 0 {
+		t.clause += ` t.account_id IN (` + placeHolders(len(t.AccountID)) + `) AND`
+
+		for i := range t.AccountID {
+			t.args = append(t.args, t.AccountID[i])
+		}
 	}
 
 	if t.StartDate != "" && t.EndDate != "" {

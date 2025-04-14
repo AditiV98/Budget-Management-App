@@ -1,0 +1,68 @@
+name: Budget Management CI CD
+on:
+  push:
+    tags:
+      - '*'
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - development
+      - main
+
+env:
+  APP_NAME: budget-management
+  DB_NAME: money_management
+  DB_HOST: localhost
+  DB_USER: root
+  DB_PASSWORD: password
+  DB_PORT: 3306
+  DB_DIALECT: mysql
+
+jobs:
+  test:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_DATABASE: ${{env.DB_NAME}}
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_PASSWORD }}
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: go.sum
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+          
+      - name: Test
+        run: |
+          go test ./... -v -coverprofile=coverage.out -coverpkg=./...
+          cat coverage.out | grep -vE 'mock_interfaces|migrations|main.go' > coverage.txt
+          codeCoverage=$(go tool cover -func coverage.txt | grep total | awk '{print $3}')
+          codeCoverage=${codeCoverage%?}
+          echo "CODE_COVERAGE=$codeCoverage" >> $GITHUB_ENV
+
+      - name: Build
+        run: |
+          export CGO_ENABLED=0
+          go build -ldflags "-linkmode external -extldflags -static" -o main
+
+      - name: Publish Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build artifacts
+          path: |
+            main
+          retention-days: 7

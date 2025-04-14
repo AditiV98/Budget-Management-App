@@ -45,7 +45,7 @@ type Savings interface {
 }
 
 type Dashboard interface {
-	Get(ctx *gofr.Context, startDate, endDate string) (models.Dashboard, error)
+	Get(ctx *gofr.Context, f *filters.Transactions) (models.Dashboard, error)
 }
 
 type Auth interface {

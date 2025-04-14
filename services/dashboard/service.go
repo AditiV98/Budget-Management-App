@@ -19,17 +19,14 @@ func New(transactionsSvc services.Transactions, userSvc services.User) services.
 	return &dashboardService{transactionsSvc: transactionsSvc, userSvc: userSvc}
 }
 
-func (s *dashboardService) Get(ctx *gofr.Context, startDate, endDate string) (models.Dashboard, error) {
+func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (models.Dashboard, error) {
 	var dashboard models.Dashboard
 
 	userID, _ := ctx.Value("userID").(int)
 
-	//user, err := s.userSvc.GetAll(ctx, &filters.User{Email: userEmail})
-	//if err != nil {
-	//	return models.Dashboard{}, err
-	//}
+	f.UserID = userID
 
-	transactions, err := s.transactionsSvc.GetAll(ctx, &filters.Transactions{StartDate: startDate, EndDate: endDate, UserID: userID})
+	transactions, err := s.transactionsSvc.GetAll(ctx, f)
 	if err != nil {
 		return models.Dashboard{}, err
 	}

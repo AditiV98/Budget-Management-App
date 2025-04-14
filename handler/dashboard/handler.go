@@ -2,8 +2,10 @@ package dashboard
 
 import (
 	"gofr.dev/pkg/gofr"
+	"moneyManagement/filters"
 	"moneyManagement/handler"
 	"moneyManagement/services"
+	"strconv"
 )
 
 type dashboardHandler struct {
@@ -17,8 +19,16 @@ func New(dashboardSvc services.Dashboard) handler.Dashboard {
 func (h *dashboardHandler) Get(ctx *gofr.Context) (interface{}, error) {
 	startDate := ctx.Params("startDate")
 	endDate := ctx.Params("endDate")
+	accountID := ctx.Params("accountId")
 
-	dashboard, err := h.dashboardSvc.Get(ctx, startDate[0]+" 00:00:00", endDate[0]+" 23:59:59")
+	id, err := strconv.Atoi(accountID[0])
+	if err != nil {
+		return nil, err
+	}
+
+	f := &filters.Transactions{AccountID: []int{id}, StartDate: startDate[0] + " 00:00:00", EndDate: endDate[0] + " 23:59:59"}
+
+	dashboard, err := h.dashboardSvc.Get(ctx, f)
 	if err != nil {
 		return nil, err
 	}

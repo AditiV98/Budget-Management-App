@@ -3,7 +3,6 @@ package accounts
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"gofr.dev/pkg/gofr"
 	"gofr.dev/pkg/gofr/datasource"
 	datasourceSQL "gofr.dev/pkg/gofr/datasource/sql"
@@ -193,13 +192,9 @@ func (s *accountStore) Update(ctx *gofr.Context, account *models.Account, tx *da
 		return err
 	}
 
-	rowAffected, err := result.RowsAffected()
+	_, err = result.RowsAffected()
 	if err != nil {
 		return err
-	}
-
-	if rowAffected == 0 {
-		return errors.New("account update failed")
 	}
 
 	return nil
