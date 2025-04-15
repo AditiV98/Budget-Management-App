@@ -80,7 +80,39 @@ func (s *accountSvc) GetAll(ctx *gofr.Context, f *filters.Account) ([]*models.Ac
 	return accounts, nil
 }
 
-func (s *accountSvc) Update(ctx *gofr.Context, account *models.Account, tx *sql.Tx) (*models.Account, error) {
+func (s *accountSvc) Update(ctx *gofr.Context, account *models.Account) (*models.Account, error) {
+	tx, err := ctx.SQL.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	userID, _ := ctx.Value("userID").(int)
+
+	account.UserID = userID
+
+	err = s.accountStore.Update(ctx, account, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	updatedAccount, err := s.GetByID(ctx, account.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedAccount, nil
+}
+
+func (s *accountSvc) UpdateWithTx(ctx *gofr.Context, account *models.Account, tx *sql.Tx) (*models.Account, error) {
 	userID, _ := ctx.Value("userID").(int)
 
 	//user, err := s.userSvc.GetAll(ctx, &filters.User{Email: userEmail})

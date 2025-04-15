@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"errors"
 	"gofr.dev/pkg/gofr"
 	"moneyManagement/filters"
 	"moneyManagement/handler"
@@ -23,7 +24,7 @@ func (h *dashboardHandler) Get(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(accountID[0])
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	f := &filters.Transactions{AccountID: []int{id}, StartDate: startDate[0] + " 00:00:00", EndDate: endDate[0] + " 23:59:59"}

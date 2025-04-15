@@ -1,6 +1,7 @@
 package transactions
 
 import (
+	"errors"
 	"gofr.dev/pkg/gofr"
 	"moneyManagement/filters"
 	"moneyManagement/handler"
@@ -23,7 +24,7 @@ func (h *transactionsHandler) Create(ctx *gofr.Context) (interface{}, error) {
 
 	err := ctx.Bind(&transaction)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
 	newTransaction, err := h.transactionSvc.Create(ctx, transaction)
@@ -58,7 +59,7 @@ func (h *transactionsHandler) GetByID(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	transaction, err := h.transactionSvc.GetByID(ctx, id)
@@ -74,14 +75,14 @@ func (h *transactionsHandler) Update(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	var transaction *models.Transaction
 
 	err = ctx.Bind(&transaction)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
 	transaction.ID = id
@@ -99,7 +100,7 @@ func (h *transactionsHandler) Delete(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	err = h.transactionSvc.Delete(ctx, id)

@@ -10,10 +10,10 @@ import (
 )
 
 type User interface {
-	Create(ctx *gofr.Context, user *models.User) error
+	Create(ctx *gofr.Context, user *models.User) (*models.User, error)
 	GetByID(ctx *gofr.Context, id int) (*models.User, error)
 	GetAll(ctx *gofr.Context, f *filters.User) ([]*models.User, error)
-	Update(ctx *gofr.Context, user *models.User) error
+	Update(ctx *gofr.Context, user *models.User) (*models.User, error)
 	Delete(ctx *gofr.Context, id int) error
 	AuthAdaptor(ctx *gofr.Context, claims *models.GoogleClaims) error
 }
@@ -22,7 +22,8 @@ type Account interface {
 	Create(ctx *gofr.Context, account *models.Account) (*models.Account, error)
 	GetByID(ctx *gofr.Context, id int) (*models.Account, error)
 	GetAll(ctx *gofr.Context, f *filters.Account) ([]*models.Account, error)
-	Update(ctx *gofr.Context, account *models.Account, tx *sql.Tx) (*models.Account, error)
+	Update(ctx *gofr.Context, account *models.Account) (*models.Account, error)
+	UpdateWithTx(ctx *gofr.Context, account *models.Account, tx *sql.Tx) (*models.Account, error)
 	Delete(ctx *gofr.Context, id int) error
 	GetByIDForUpdate(ctx *gofr.Context, id, userID int, tx *sql.Tx) (*models.Account, error)
 }
@@ -36,10 +37,12 @@ type Transactions interface {
 }
 
 type Savings interface {
-	Create(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) error
+	Create(ctx *gofr.Context, savings *models.Savings) (*models.Savings, error)
+	CreateWithTx(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) (*models.Savings, error)
 	GetAll(ctx *gofr.Context) ([]*models.Savings, error)
 	GetByID(ctx *gofr.Context, id int) (*models.Savings, error)
-	Update(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) error
+	Update(ctx *gofr.Context, savings *models.Savings) (*models.Savings, error)
+	UpdateWithTx(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) (*models.Savings, error)
 	Delete(ctx *gofr.Context, id int) error
 	GetByTransactionID(ctx *gofr.Context, id int) (*models.Savings, error)
 }

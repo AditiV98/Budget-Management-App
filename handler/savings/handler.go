@@ -1,6 +1,7 @@
 package savings
 
 import (
+	"errors"
 	"gofr.dev/pkg/gofr"
 	"moneyManagement/handler"
 	"moneyManagement/models"
@@ -18,42 +19,28 @@ func New(savingsSvc services.Savings) handler.Savings {
 }
 
 func (h *savings) Create(ctx *gofr.Context) (interface{}, error) {
-	var savings *models.Savings
+	var saving *models.Savings
 
-	err := ctx.Bind(&savings)
+	err := ctx.Bind(&saving)
+	if err != nil {
+		return nil, errors.New("bind error")
+	}
+
+	newSaving, err := h.savingsSvc.Create(ctx, saving)
 	if err != nil {
 		return nil, err
 	}
 
-	tx, err := ctx.SQL.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	err = h.savingsSvc.Create(ctx, savings, tx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
+	return newSaving, nil
 }
 
 func (h *savings) GetAll(ctx *gofr.Context) (interface{}, error) {
-	savings, err := h.savingsSvc.GetAll(ctx)
+	saving, err := h.savingsSvc.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return savings, nil
+	return saving, nil
 }
 
 func (h *savings) GetByID(ctx *gofr.Context) (interface{}, error) {
@@ -61,15 +48,15 @@ func (h *savings) GetByID(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
-	savings, err := h.savingsSvc.GetByID(ctx, id)
+	saving, err := h.savingsSvc.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return savings, nil
+	return saving, nil
 }
 
 func (h *savings) Update(ctx *gofr.Context) (interface{}, error) {
@@ -77,38 +64,24 @@ func (h *savings) Update(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
-	var savings *models.Savings
+	var saving *models.Savings
 
-	err = ctx.Bind(&savings)
+	err = ctx.Bind(&saving)
+	if err != nil {
+		return nil, errors.New("bind error")
+	}
+
+	saving.ID = id
+
+	updatedSaving, err := h.savingsSvc.Update(ctx, saving)
 	if err != nil {
 		return nil, err
 	}
 
-	savings.ID = id
-
-	tx, err := ctx.SQL.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	err = h.savingsSvc.Update(ctx, savings, false, tx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
+	return updatedSaving, nil
 }
 
 func (h *savings) Delete(ctx *gofr.Context) (interface{}, error) {
@@ -116,7 +89,7 @@ func (h *savings) Delete(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	err = h.savingsSvc.Delete(ctx, id)
@@ -124,5 +97,5 @@ func (h *savings) Delete(ctx *gofr.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	return nil, nil
+	return "saving deleted successfully", nil
 }

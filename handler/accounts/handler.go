@@ -1,6 +1,7 @@
 package accounts
 
 import (
+	"errors"
 	"moneyManagement/filters"
 	"moneyManagement/handler"
 	"moneyManagement/models"
@@ -24,7 +25,7 @@ func (h *accounts) Create(ctx *gofr.Context) (interface{}, error) {
 
 	err := ctx.Bind(&account)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
 	newAccount, err := h.accountSvc.Create(ctx, account)
@@ -40,7 +41,7 @@ func (h *accounts) GetByID(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	account, err := h.accountSvc.GetByID(ctx, id)
@@ -52,12 +53,12 @@ func (h *accounts) GetByID(ctx *gofr.Context) (interface{}, error) {
 }
 
 func (h *accounts) GetAll(ctx *gofr.Context) (interface{}, error) {
-	accounts, err := h.accountSvc.GetAll(ctx,&filters.Account{})
+	account, err := h.accountSvc.GetAll(ctx, &filters.Account{})
 	if err != nil {
 		return nil, err
 	}
 
-	return accounts, nil
+	return account, nil
 }
 
 func (h *accounts) Update(ctx *gofr.Context) (interface{}, error) {
@@ -65,33 +66,19 @@ func (h *accounts) Update(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	var account *models.Account
 
 	err = ctx.Bind(&account)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
 	account.ID = id
 
-	tx, err := ctx.SQL.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	updatedAccount, err := h.accountSvc.Update(ctx, account, tx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
+	updatedAccount, err := h.accountSvc.Update(ctx, account)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +91,7 @@ func (h *accounts) Delete(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	err = h.accountSvc.Delete(ctx, id)

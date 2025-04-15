@@ -18,15 +18,20 @@ func New(userStore stores.User) services.User {
 	}
 }
 
-func (s *userSvc) Create(ctx *gofr.Context, user *models.User) error {
+func (s *userSvc) Create(ctx *gofr.Context, user *models.User) (*models.User, error) {
 	user.Status = "ACTIVE"
 
 	err := s.userStore.Create(ctx, user)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	newUser, err := s.GetByID(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return newUser, nil
 }
 
 func (s *userSvc) GetByID(ctx *gofr.Context, id int) (*models.User, error) {
@@ -47,13 +52,18 @@ func (s *userSvc) GetAll(ctx *gofr.Context, f *filters.User) ([]*models.User, er
 	return users, nil
 }
 
-func (s *userSvc) Update(ctx *gofr.Context, user *models.User) error {
+func (s *userSvc) Update(ctx *gofr.Context, user *models.User) (*models.User, error) {
 	err := s.userStore.Update(ctx, user)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	updatedUser, err := s.GetByID(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
 }
 
 func (s *userSvc) Delete(ctx *gofr.Context, id int) error {
@@ -74,7 +84,7 @@ func (s *userSvc) AuthAdaptor(ctx *gofr.Context, claims *models.GoogleClaims) er
 	if user == nil {
 		newUser := &models.User{Email: claims.Email, FirstName: claims.GivenName, LastName: claims.FamilyName}
 
-		err = s.Create(ctx, newUser)
+		_, err = s.Create(ctx, newUser)
 		if err != nil {
 			return err
 		}
