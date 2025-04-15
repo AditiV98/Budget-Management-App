@@ -22,7 +22,7 @@ func (h *auth) CreateToken(ctx *gofr.Context) (interface{}, error) {
 
 	err := ctx.Bind(&req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
 	result, err := h.authSvc.GenerateGoogleToken(ctx, req.Code)
@@ -37,7 +37,7 @@ func (h *auth) Login(ctx *gofr.Context) (interface{}, error) {
 	var req models.LoginRequest
 
 	if err := ctx.Bind(&req); err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
 	// Get id_token from providerData
@@ -64,7 +64,7 @@ func (h *auth) Login(ctx *gofr.Context) (interface{}, error) {
 func (h *auth) Refresh(ctx *gofr.Context) (interface{}, error) {
 	var req models.RefreshRequest
 	if err := ctx.Bind(&req); err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
 	refreshToken := req.RefreshToken

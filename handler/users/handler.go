@@ -1,6 +1,7 @@
 package users
 
 import (
+	"errors"
 	"gofr.dev/pkg/gofr"
 	"moneyManagement/filters"
 	"moneyManagement/handler"
@@ -23,15 +24,15 @@ func (h *usersHandler) Create(ctx *gofr.Context) (interface{}, error) {
 
 	err := ctx.Bind(&user)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
-	err = h.userSvc.Create(ctx, user)
+	newUser, err := h.userSvc.Create(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 
-	return "user created successfully", nil
+	return newUser, nil
 }
 
 func (h *usersHandler) GetByID(ctx *gofr.Context) (interface{}, error) {
@@ -39,7 +40,7 @@ func (h *usersHandler) GetByID(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	user, err := h.userSvc.GetByID(ctx, id)
@@ -64,24 +65,24 @@ func (h *usersHandler) Update(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	var user *models.User
 
 	err = ctx.Bind(&user)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("bind error")
 	}
 
 	user.ID = id
 
-	err = h.userSvc.Update(ctx, user)
+	updatedUser, err := h.userSvc.Update(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 
-	return "user updated successfully", nil
+	return updatedUser, nil
 }
 
 func (h *usersHandler) Delete(ctx *gofr.Context) (interface{}, error) {
@@ -89,7 +90,7 @@ func (h *usersHandler) Delete(ctx *gofr.Context) (interface{}, error) {
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid id")
 	}
 
 	err = h.userSvc.Delete(ctx, id)

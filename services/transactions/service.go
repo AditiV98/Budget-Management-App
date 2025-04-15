@@ -72,7 +72,7 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 	}
 
 	// ✅ Update account balance before inserting transaction
-	_, err = s.accountSvc.Update(ctx, account, tx)
+	_, err = s.accountSvc.UpdateWithTx(ctx, account, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 			StartDate: transaction.TransactionDate, TransactionID: transaction.ID,
 		}
 
-		err = s.savingsSvc.Create(ctx, savings, tx)
+		_, err = s.savingsSvc.CreateWithTx(ctx, savings, tx)
 		if err != nil {
 			return nil, err
 		}
@@ -203,7 +203,7 @@ func (s *transactionSvc) Update(ctx *gofr.Context, transaction *models.Transacti
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				// Create new savings record if not found
-				err = s.savingsSvc.Create(ctx, savings, tx)
+				_, err = s.savingsSvc.CreateWithTx(ctx, savings, tx)
 				if err != nil {
 					return nil, err
 				}
@@ -212,7 +212,7 @@ func (s *transactionSvc) Update(ctx *gofr.Context, transaction *models.Transacti
 			}
 		} else {
 			// Update existing if it exists
-			err = s.savingsSvc.Update(ctx, savings, true, tx)
+			_, err = s.savingsSvc.UpdateWithTx(ctx, savings, true, tx)
 			if err != nil {
 				return nil, err
 			}
@@ -237,7 +237,7 @@ func (s *transactionSvc) Update(ctx *gofr.Context, transaction *models.Transacti
 	}
 
 	// Update account balance
-	_, err = s.accountSvc.Update(ctx, account, tx)
+	_, err = s.accountSvc.UpdateWithTx(ctx, account, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +287,7 @@ func (s *transactionSvc) Delete(ctx *gofr.Context, id int) error {
 		return err
 	}
 
-	_, err = s.accountSvc.Update(ctx, account, tx)
+	_, err = s.accountSvc.UpdateWithTx(ctx, account, tx)
 	if err != nil {
 		return err
 	}

@@ -18,13 +18,46 @@ func New(savingsStore stores.Savings) services.Savings {
 	}
 }
 
-func (s *savingsSvc) Create(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) error {
-	err := s.savingsStore.Create(ctx, savings, tx)
+func (s *savingsSvc) Create(ctx *gofr.Context, savings *models.Savings) (*models.Savings, error) {
+	tx, err := ctx.SQL.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	err = s.savingsStore.Create(ctx, savings, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	newSaving, err := s.GetByID(ctx, savings.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return newSaving, nil
+}
+
+func (s *savingsSvc) CreateWithTx(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) (*models.Savings, error) {
+	err := s.savingsStore.Create(ctx, savings, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	newSaving, err := s.GetByID(ctx, savings.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return newSaving, nil
 }
 
 func (s *savingsSvc) GetByID(ctx *gofr.Context, id int) (*models.Savings, error) {
@@ -54,20 +87,53 @@ func (s *savingsSvc) GetAll(ctx *gofr.Context) ([]*models.Savings, error) {
 	return allSavings, nil
 }
 
-func (s *savingsSvc) Update(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) error {
+func (s *savingsSvc) Update(ctx *gofr.Context, savings *models.Savings) (*models.Savings, error) {
+	tx, err := ctx.SQL.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	err = s.savingsStore.Update(ctx, savings, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	updatedSaving, err := s.GetByID(ctx, savings.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedSaving, nil
+}
+
+func (s *savingsSvc) UpdateWithTx(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) (*models.Savings, error) {
 	if IsTransactionID {
 		err := s.savingsStore.UpdateWIthTransactionID(ctx, savings, tx)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		err := s.savingsStore.Update(ctx, savings, tx)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	updatedSaving, err := s.GetByID(ctx, savings.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedSaving, nil
 }
 
 func (s *savingsSvc) Delete(ctx *gofr.Context, id int) error {
