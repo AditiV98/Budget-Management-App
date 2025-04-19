@@ -45,3 +45,11 @@ type Auth interface {
 	Login(ctx *gofr.Context) (interface{}, error)
 	Refresh(ctx *gofr.Context) (interface{}, error)
 }
+
+type RecurringTransactions interface {
+	Create(ctx *gofr.Context) (interface{}, error)
+	GetAll(ctx *gofr.Context) (interface{}, error)
+	GetByID(ctx *gofr.Context) (interface{}, error)
+	Update(ctx *gofr.Context) (interface{}, error)
+	Delete(ctx *gofr.Context) (interface{}, error)
+}

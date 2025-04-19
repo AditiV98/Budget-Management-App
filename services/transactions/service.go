@@ -42,11 +42,6 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 
 	userID, _ := ctx.Value("userID").(int)
 
-	//user, err := s.userSvc.GetAll(ctx, &filters.User{Email: userEmail})
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	transaction.UserID = userID
 	transaction.TransactionDate, _ = convertToMySQLDate(transaction.TransactionDate)
 
@@ -90,7 +85,7 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 			StartDate: transaction.TransactionDate, TransactionID: transaction.ID,
 		}
 
-		_, err = s.savingsSvc.CreateWithTx(ctx, savings, tx)
+		err = s.savingsSvc.CreateWithTx(ctx, savings, tx)
 		if err != nil {
 			return nil, err
 		}
@@ -114,11 +109,6 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 func (s *transactionSvc) GetByID(ctx *gofr.Context, id int) (*models.Transaction, error) {
 	userID, _ := ctx.Value("userID").(int)
 
-	//user, err := s.userSvc.GetAll(ctx, &filters.User{Email: userEmail})
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	transaction, err := s.transactionStore.GetByID(ctx, id, userID)
 	if err != nil {
 		return nil, err
@@ -129,11 +119,6 @@ func (s *transactionSvc) GetByID(ctx *gofr.Context, id int) (*models.Transaction
 
 func (s *transactionSvc) GetAll(ctx *gofr.Context, f *filters.Transactions) ([]*models.Transaction, error) {
 	userID, _ := ctx.Value("userID").(int)
-
-	//user, err := s.userSvc.GetAll(ctx, &filters.User{Email: userEmail})
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	f.UserID = userID
 
@@ -156,11 +141,6 @@ func (s *transactionSvc) Update(ctx *gofr.Context, transaction *models.Transacti
 	}()
 
 	userID, _ := ctx.Value("userID").(int)
-
-	//user, err := s.userSvc.GetAll(ctx, &filters.User{Email: userEmail})
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	transaction.UserID = userID
 
@@ -203,7 +183,7 @@ func (s *transactionSvc) Update(ctx *gofr.Context, transaction *models.Transacti
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				// Create new savings record if not found
-				_, err = s.savingsSvc.CreateWithTx(ctx, savings, tx)
+				err = s.savingsSvc.CreateWithTx(ctx, savings, tx)
 				if err != nil {
 					return nil, err
 				}
@@ -212,7 +192,7 @@ func (s *transactionSvc) Update(ctx *gofr.Context, transaction *models.Transacti
 			}
 		} else {
 			// Update existing if it exists
-			_, err = s.savingsSvc.UpdateWithTx(ctx, savings, true, tx)
+			err = s.savingsSvc.UpdateWithTx(ctx, savings, true, tx)
 			if err != nil {
 				return nil, err
 			}

@@ -46,18 +46,13 @@ func (s *savingsSvc) Create(ctx *gofr.Context, savings *models.Savings) (*models
 	return newSaving, nil
 }
 
-func (s *savingsSvc) CreateWithTx(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) (*models.Savings, error) {
+func (s *savingsSvc) CreateWithTx(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) error {
 	err := s.savingsStore.Create(ctx, savings, tx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	newSaving, err := s.GetByID(ctx, savings.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return newSaving, nil
+	return nil
 }
 
 func (s *savingsSvc) GetByID(ctx *gofr.Context, id int) (*models.Savings, error) {
@@ -115,25 +110,20 @@ func (s *savingsSvc) Update(ctx *gofr.Context, savings *models.Savings) (*models
 	return updatedSaving, nil
 }
 
-func (s *savingsSvc) UpdateWithTx(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) (*models.Savings, error) {
+func (s *savingsSvc) UpdateWithTx(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) error {
 	if IsTransactionID {
 		err := s.savingsStore.UpdateWIthTransactionID(ctx, savings, tx)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		err := s.savingsStore.Update(ctx, savings, tx)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	updatedSaving, err := s.GetByID(ctx, savings.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedSaving, nil
+	return nil
 }
 
 func (s *savingsSvc) Delete(ctx *gofr.Context, id int) error {

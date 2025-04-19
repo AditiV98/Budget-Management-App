@@ -6,6 +6,7 @@ import (
 	"moneyManagement/migrations"
 	"moneyManagement/services/auth"
 	"moneyManagement/stores/accounts"
+	"moneyManagement/stores/recurringTransactions"
 	"moneyManagement/stores/savings"
 	"moneyManagement/stores/transactions"
 	"moneyManagement/stores/users"
@@ -13,6 +14,7 @@ import (
 	validatorSvc "moneyManagement/services/Validator"
 	accountService "moneyManagement/services/accounts"
 	dashboardService "moneyManagement/services/dashboard"
+	recurringTransactionService "moneyManagement/services/recurringTransactions"
 	savingsService "moneyManagement/services/savings"
 	transactionService "moneyManagement/services/transactions"
 	usersService "moneyManagement/services/users"
@@ -20,6 +22,7 @@ import (
 	accountsHandler "moneyManagement/handler/accounts"
 	authHandlers "moneyManagement/handler/auth"
 	dashboardHandlers "moneyManagement/handler/dashboard"
+	recurringTransactionsHandler "moneyManagement/handler/recurringTransactions"
 	savingsHandler "moneyManagement/handler/savings"
 	transactionsHandler "moneyManagement/handler/transactions"
 	usersHandler "moneyManagement/handler/users"
@@ -34,12 +37,14 @@ func main() {
 	accountStore := accounts.New()
 	transactionStore := transactions.New()
 	savingStore := savings.New()
+	recurringTransactionStore := recurringTransactions.New()
 
 	userSvc := usersService.New(userStore)
 	accountSvc := accountService.New(accountStore, userSvc)
 	savingsSvc := savingsService.New(savingStore)
 	transactionSvc := transactionService.New(transactionStore, accountSvc, savingsSvc, userSvc)
 	dashboardSvc := dashboardService.New(transactionSvc, userSvc)
+	recurringTransactionSvc := recurringTransactionService.New(recurringTransactionStore, userSvc)
 	authSvc := auth.New(app.Config.Get("REFRESH_SECRET"), app.Config.Get("ACCESS_SECRET"), app.Config.Get("GOOGLE_CLIENT_ID"),
 		app.Config.Get("GOOGLE_CLIENT_SECRET"), app.Config.Get("REDIRECT_URL"))
 	validator := validatorSvc.New(app.Config.Get("ACCESS_SECRET"))
@@ -50,6 +55,7 @@ func main() {
 	transactionHandler := transactionsHandler.New(transactionSvc)
 	dashboardHandler := dashboardHandlers.New(dashboardSvc)
 	authHandler := authHandlers.New(authSvc, userSvc)
+	recurringTransactionHandler := recurringTransactionsHandler.New(recurringTransactionSvc)
 
 	app.UseMiddleware(middlewares.Authorization([]middlewares.ExemptPath{
 		{Path: "^/google-token$", Method: "POST"},
@@ -82,6 +88,12 @@ func main() {
 	app.GET("/transaction/{id}", transactionHandler.GetByID)
 	app.PUT("/transaction/{id}", transactionHandler.Update)
 	app.DELETE("/transaction/{id}", transactionHandler.Delete)
+
+	app.POST("/recurring-transaction", recurringTransactionHandler.Create)
+	app.GET("/recurring-transaction", recurringTransactionHandler.GetAll)
+	app.GET("/recurring-transaction/{id}", recurringTransactionHandler.GetByID)
+	app.PUT("/recurring-transaction/{id}", recurringTransactionHandler.Update)
+	app.DELETE("/recurring-transaction/{id}", recurringTransactionHandler.Delete)
 
 	app.POST("/google-token", authHandler.CreateToken)
 	app.POST("/login", authHandler.Login)
