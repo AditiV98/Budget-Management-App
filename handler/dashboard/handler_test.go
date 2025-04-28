@@ -32,11 +32,11 @@ func Test_Get(t *testing.T) {
 	}{
 		{"Success Case", "1", dashboard, nil,
 			func(ctx *gofr.Context) {
-				dashboardSvc.EXPECT().Get(ctx, &filters.Transactions{AccountID: []int{1}, StartDate: "01-01-2025 00:00:00", EndDate: "30-01-2025 23:59:59"}).Return(dashboard, nil)
+				dashboardSvc.EXPECT().Get(ctx, &filters.Transactions{AccountID: 1, StartDate: "01-01-2025 00:00:00", EndDate: "30-01-2025 23:59:59"}).Return(dashboard, nil)
 			}},
 		{"Failure Case: Error from service layer", "1", nil, errors.New("error"),
 			func(ctx *gofr.Context) {
-				dashboardSvc.EXPECT().Get(ctx, &filters.Transactions{AccountID: []int{1}, StartDate: "01-01-2025 00:00:00", EndDate: "30-01-2025 23:59:59"}).Return(models.Dashboard{}, errors.New("error"))
+				dashboardSvc.EXPECT().Get(ctx, &filters.Transactions{AccountID: 1, StartDate: "01-01-2025 00:00:00", EndDate: "30-01-2025 23:59:59"}).Return(models.Dashboard{}, errors.New("error"))
 			}},
 		{"Failure Case: invalid id", "!", nil, errors.New("invalid id"), func(ctx *gofr.Context) {
 		}},
