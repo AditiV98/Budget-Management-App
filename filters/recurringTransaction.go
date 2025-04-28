@@ -2,7 +2,7 @@ package filters
 
 import "strings"
 
-type Transactions struct {
+type RecurringTransactions struct {
 	Type      []string `json:"type"`
 	UserID    int      `json:"userID"`
 	AccountID int      `json:"accountID"`
@@ -13,7 +13,7 @@ type Transactions struct {
 	args      []interface{}
 }
 
-func (t *Transactions) WhereClause() (clause string, values []interface{}) {
+func (t *RecurringTransactions) WhereClause() (clause string, values []interface{}) {
 	if len(t.Type) != 0 {
 		t.clause += `t.type IN (` + placeHolders(len(t.Type)) + `) AND`
 
@@ -51,8 +51,4 @@ func (t *Transactions) WhereClause() (clause string, values []interface{}) {
 	}
 
 	return t.clause, t.args
-}
-
-func placeHolders(size int) string {
-	return strings.TrimRight(strings.Repeat("?,", size), ",")
 }

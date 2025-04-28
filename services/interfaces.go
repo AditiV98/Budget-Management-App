@@ -38,11 +38,11 @@ type Transactions interface {
 
 type Savings interface {
 	Create(ctx *gofr.Context, savings *models.Savings) (*models.Savings, error)
-	CreateWithTx(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) (*models.Savings, error)
+	CreateWithTx(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) error
 	GetAll(ctx *gofr.Context) ([]*models.Savings, error)
 	GetByID(ctx *gofr.Context, id int) (*models.Savings, error)
 	Update(ctx *gofr.Context, savings *models.Savings) (*models.Savings, error)
-	UpdateWithTx(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) (*models.Savings, error)
+	UpdateWithTx(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) error
 	Delete(ctx *gofr.Context, id int) error
 	GetByTransactionID(ctx *gofr.Context, id int) (*models.Savings, error)
 }
@@ -61,4 +61,12 @@ type Auth interface {
 
 type Validator interface {
 	ValidateToken(tokenStr string) (jwt.MapClaims, error)
+}
+
+type RecurringTransactions interface {
+	Create(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) (*models.RecurringTransaction, error)
+	GetAll(ctx *gofr.Context, f *filters.RecurringTransactions) ([]*models.RecurringTransaction, error)
+	GetByID(ctx *gofr.Context, id int) (*models.RecurringTransaction, error)
+	Update(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) (*models.RecurringTransaction, error)
+	Delete(ctx *gofr.Context, id int) error
 }

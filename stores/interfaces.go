@@ -48,3 +48,11 @@ type SavingsSource interface {
 	Update(ctx *gofr.Context, savingsSource *models.SavingsSources) error
 	Delete(ctx *gofr.Context, id int) error
 }
+
+type RecurringTransactions interface {
+	Create(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) error
+	GetAll(ctx *gofr.Context, f *filters.RecurringTransactions) ([]*models.RecurringTransaction, error)
+	GetByID(ctx *gofr.Context, id, userID int) (*models.RecurringTransaction, error)
+	Update(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) error
+	Delete(ctx *gofr.Context, id int) error
+}

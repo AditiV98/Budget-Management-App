@@ -513,3 +513,101 @@ func (mr *MockAuthMockRecorder) Refresh(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Refresh", reflect.TypeOf((*MockAuth)(nil).Refresh), ctx)
 }
+
+// MockRecurringTransactions is a mock of RecurringTransactions interface.
+type MockRecurringTransactions struct {
+	ctrl     *gomock.Controller
+	recorder *MockRecurringTransactionsMockRecorder
+}
+
+// MockRecurringTransactionsMockRecorder is the mock recorder for MockRecurringTransactions.
+type MockRecurringTransactionsMockRecorder struct {
+	mock *MockRecurringTransactions
+}
+
+// NewMockRecurringTransactions creates a new mock instance.
+func NewMockRecurringTransactions(ctrl *gomock.Controller) *MockRecurringTransactions {
+	mock := &MockRecurringTransactions{ctrl: ctrl}
+	mock.recorder = &MockRecurringTransactionsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRecurringTransactions) EXPECT() *MockRecurringTransactionsMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockRecurringTransactions) Create(ctx *gofr.Context) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockRecurringTransactionsMockRecorder) Create(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRecurringTransactions)(nil).Create), ctx)
+}
+
+// Delete mocks base method.
+func (m *MockRecurringTransactions) Delete(ctx *gofr.Context) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockRecurringTransactionsMockRecorder) Delete(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRecurringTransactions)(nil).Delete), ctx)
+}
+
+// GetAll mocks base method.
+func (m *MockRecurringTransactions) GetAll(ctx *gofr.Context) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", ctx)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockRecurringTransactionsMockRecorder) GetAll(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRecurringTransactions)(nil).GetAll), ctx)
+}
+
+// GetByID mocks base method.
+func (m *MockRecurringTransactions) GetByID(ctx *gofr.Context) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", ctx)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockRecurringTransactionsMockRecorder) GetByID(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRecurringTransactions)(nil).GetByID), ctx)
+}
+
+// Update mocks base method.
+func (m *MockRecurringTransactions) Update(ctx *gofr.Context) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockRecurringTransactionsMockRecorder) Update(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRecurringTransactions)(nil).Update), ctx)
+}

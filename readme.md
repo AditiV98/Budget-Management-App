@@ -1,44 +1,93 @@
-- Command to install open-source GOFR - go get gofr.dev
-- Command to install open-source gofr CLI - go install gofr.dev/cli/gofr@latest
-- Command to create migration file - gofr migrate create -name=<file_name>
-- command to create docker container -  docker run --name money_management -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 -d mysql:latest
+# Budget Management System
 
+- A modern and secure Budget Management System that helps users track and manage their finances effectively across multiple accounts.
+- Built with React (frontend), Golang (backend), and MySQL (database), with authentication powered by OAuth 2.0 and JWT.
 
+## ✨ Features
+- 🔒 OAuth 2.0 Login — Secure authentication using OAuth providers (Google)
 
-- Expense categories - 
-- Housing, Utilities, Groceries, Transportation, Education,Healthcare,Loan & Debt Payments,Dining Out,Entertainment,
-Shopping,Travel,Gifts & Donations,Fitness & Wellness,Childcare,Home Maintenance,Pet Care,Self-Development
+- 🔑 JWT-based Authentication — Stateless session management with JSON Web Tokens
 
-🏠 Housing (Rent, Mortgage, Property Tax)
+- 🏦 Multiple Account Management — Manage different accounts (Savings, Cash, Credit Cards, etc.)
 
-💡 Utilities (Electricity, Water, Gas, Internet, Phone)
+- 💸 Transactions Management — Add, edit, and delete transactions seamlessly
 
-🍽 Groceries (Supermarket, Daily Essentials)
+- 📄 Transaction CSV Upload — Import bulk transactions from a CSV file
 
-🚗 Transportation (Fuel, Public Transport, Car Loan EMI, Repairs)
+- 🗂 Transaction Categorization — Classify transactions into categories (Food, Rent, Salary, etc.)
 
-🎓 Education (School Fees, Courses, Books)
+- 🔎 Advanced Filtering — Filter transactions by category, type (income/expense), and date range
 
-🏥 Healthcare (Medicines, Doctor Visits, Health Insurance)
+- 🔁 Recurring Transactions — Automatically manage repeated transactions like monthly bills or salaries
 
-💳 Loan & Debt Payments (EMI, Credit Card Bills, Personal Loan)
+# 🛤 API Endpoints
 
-🍽 Dining Out (Restaurants, Cafes, Takeaways)
+## 📊 Dashboard
+| Method | Endpoint    | Description |
+|:------:|:-----------:|:------------|
+| GET    | `/dashboard` | Fetch user dashboard data (summary of accounts, transactions, savings) |
 
-🎉 Entertainment (Movies, Netflix, Gaming, Events)
+---
 
-👗 Shopping (Clothing, Accessories, Electronics)
+## 👤 User Management
+| Method | Endpoint     | Description              |
+|:------:|:------------:|:-------------------------|
+| POST   | `/user`       | Create a new user         |
+| GET    | `/user`       | Get all users             |
+| GET    | `/user/{id}`  | Get a specific user by ID |
+| PUT    | `/user/{id}`  | Update user by ID         |
+| DELETE | `/user/{id}`  | Delete user by ID         |
 
-✈️ Travel (Flights, Hotels, Sightseeing, Visa)
+---
 
-🎁 Gifts & Donations (Birthdays, Festivals, Charity)
+## 🏦 Account Management
+| Method | Endpoint       | Description           |
+|:------:|:--------------:|:----------------------|
+| POST   | `/account`      | Create a new account  |
+| GET    | `/account`      | Get all accounts      |
+| GET    | `/account/{id}` | Get account by ID     |
+| PUT    | `/account/{id}` | Update account by ID  |
+| DELETE | `/account/{id}` | Delete account by ID  |
 
-🏋 Fitness & Wellness (Gym, Yoga, Spa, Salon)
+---
 
-🧒 Childcare (Babysitter, School Supplies)
+## 💰 Savings Management
+| Method | Endpoint        | Description           |
+|:------:|:---------------:|:----------------------|
+| POST   | `/savings`       | Create a new saving goal |
+| GET    | `/savings`       | Get all saving goals  |
+| GET    | `/savings/{id}`  | Get saving goal by ID |
+| PUT    | `/savings/{id}`  | Update saving goal by ID |
+| DELETE | `/savings/{id}`  | Delete saving goal by ID |
 
-🏠 Home Maintenance (Repairs, Furniture, Appliances)
+---
 
-🐶 Pet Care (Vet, Food, Grooming)
+## 💳 Transaction Management
+| Method | Endpoint            | Description           |
+|:------:|:-------------------:|:----------------------|
+| POST   | `/transaction`        | Create a new transaction |
+| GET    | `/transaction`        | Get all transactions  |
+| GET    | `/transaction/{id}`   | Get transaction by ID |
+| PUT    | `/transaction/{id}`   | Update transaction by ID |
+| DELETE | `/transaction/{id}`   | Delete transaction by ID |
 
-🎓 Self-Development (Online Courses, Coaching, Books)
+---
+
+## 🔁 Recurring Transaction Management
+| Method | Endpoint                    | Description                     |
+|:------:|:----------------------------:|:-------------------------------|
+| POST   | `/recurring-transaction`      | Create a recurring transaction |
+| GET    | `/recurring-transaction`      | Get all recurring transactions |
+| GET    | `/recurring-transaction/{id}` | Get recurring transaction by ID |
+| PUT    | `/recurring-transaction/{id}` | Update recurring transaction by ID |
+| DELETE | `/recurring-transaction/{id}` | Delete recurring transaction by ID |
+
+---
+
+## 🔐 Authentication
+| Method | Endpoint        | Description                          |
+|:------:|:---------------:|:------------------------------------|
+| POST   | `/google-token`  | Exchange Google OAuth token for access |
+| POST   | `/login`         | Login with OAuth provider token     |
+| POST   | `/refresh`       | Refresh access token using refresh token |
+

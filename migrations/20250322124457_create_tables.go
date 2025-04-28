@@ -59,6 +59,26 @@ const (
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (transaction_id) REFERENCES transactions(id)
 );`
+
+	createRecurringTransactions = `CREATE TABLE recurring_transactions (
+id INT PRIMARY KEY AUTO_INCREMENT,
+user_id INT NOT NULL,
+account_id INT NOT NULL,
+amount FLOAT NOT NULL,
+type ENUM('INCOME', 'EXPENSE', 'SAVINGS') NOT NULL,
+category VARCHAR(255),
+description TEXT,
+frequency ENUM('DAILY','WEEKLY','MONTHLY','CUSTOM'),
+custom_days INT,
+start_date TIMESTAMP NOT NULL,
+end_date TIMESTAMP,
+last_run TIMESTAMP,
+next_run TIMESTAMP,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+deleted_at TIMESTAMP DEFAULT null,
+FOREIGN KEY (user_id) REFERENCES users(id),
+FOREIGN KEY (account_id) REFERENCES accounts(id)
+);`
 )
 
 func create_tables() migration.Migrate {
