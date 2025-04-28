@@ -104,6 +104,11 @@ func create_tables() migration.Migrate {
 				return err
 			}
 
+			_, err = d.SQL.Exec(createRecurringTransactions)
+			if err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
