@@ -11,12 +11,13 @@ import (
 )
 
 type dashboardService struct {
+	accountSvc      services.Account
 	transactionsSvc services.Transactions
 	userSvc         services.User
 }
 
-func New(transactionsSvc services.Transactions, userSvc services.User) services.Dashboard {
-	return &dashboardService{transactionsSvc: transactionsSvc, userSvc: userSvc}
+func New(accountSvc services.Account, transactionsSvc services.Transactions, userSvc services.User) services.Dashboard {
+	return &dashboardService{accountSvc: accountSvc, transactionsSvc: transactionsSvc, userSvc: userSvc}
 }
 
 func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (models.Dashboard, error) {
@@ -27,6 +28,11 @@ func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (mode
 	f.UserID = userID
 
 	transactions, err := s.transactionsSvc.GetAll(ctx, f)
+	if err != nil {
+		return models.Dashboard{}, err
+	}
+
+	account, err := s.accountSvc.GetByID(ctx, f.AccountID)
 	if err != nil {
 		return models.Dashboard{}, err
 	}
@@ -49,7 +55,7 @@ func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (mode
 		}
 	}
 
-	dashboard.RemainingBalance = dashboard.TotalIncome - dashboard.TotalExpense - dashboard.TotalSavings
+	dashboard.RemainingBalance = account.Balance
 
 	dashboard.ExpenseBreakdown = mapToChartData(expenseMap)
 	dashboard.IncomeBreakdown = mapToChartData(incomeMap)

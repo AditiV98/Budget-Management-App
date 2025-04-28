@@ -28,9 +28,14 @@ func (s *recurringTransactionSvc) Create(ctx *gofr.Context, recurringTransaction
 	recurringTransaction.UserID = userID
 	recurringTransaction.StartDate, _ = convertToMySQLDate(recurringTransaction.StartDate)
 	recurringTransaction.EndDate, _ = convertToMySQLDate(recurringTransaction.EndDate)
-	recurringTransaction.NextRun, _ = convertToMySQLDate(recurringTransaction.NextRun)
+	nextRun, err := calculateNextRun(recurringTransaction.StartDate, "", recurringTransaction.Frequency, recurringTransaction.CustomDays)
+	if err != nil {
+		return nil, err
+	}
 
-	err := s.recurringTransactionStore.Create(ctx, recurringTransaction)
+	recurringTransaction.NextRun = nextRun
+
+	err = s.recurringTransactionStore.Create(ctx, recurringTransaction)
 	if err != nil {
 		return nil, err
 	}
@@ -70,13 +75,28 @@ func (s *recurringTransactionSvc) GetAll(ctx *gofr.Context, f *filters.Recurring
 func (s *recurringTransactionSvc) Update(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) (*models.RecurringTransaction, error) {
 	userID, _ := ctx.Value("userID").(int)
 
+	oldTxn, err := s.GetByID(ctx, recurringTransaction.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	recurringTransaction.UserID = userID
 	recurringTransaction.StartDate, _ = convertToMySQLDate(recurringTransaction.StartDate)
 	recurringTransaction.EndDate, _ = convertToMySQLDate(recurringTransaction.EndDate)
 	recurringTransaction.NextRun, _ = convertToMySQLDate(recurringTransaction.NextRun)
 	recurringTransaction.LastRun, _ = convertToMySQLDate(recurringTransaction.LastRun)
 
-	err := s.recurringTransactionStore.Update(ctx, recurringTransaction)
+	if recurringTransaction.Frequency != oldTxn.Frequency ||
+		(recurringTransaction.Frequency == models.CUSTOM && recurringTransaction.Frequency == oldTxn.Frequency && recurringTransaction.CustomDays != oldTxn.CustomDays) {
+		nextRun, err := calculateNextRun(recurringTransaction.StartDate, "", recurringTransaction.Frequency, recurringTransaction.CustomDays)
+		if err != nil {
+			return nil, err
+		}
+
+		recurringTransaction.NextRun = nextRun
+	}
+
+	err = s.recurringTransactionStore.Update(ctx, recurringTransaction)
 	if err != nil {
 		return nil, err
 	}
@@ -116,4 +136,49 @@ func convertToMySQLDate(isoDate string) (string, error) {
 	}
 
 	return "", nil
+}
+
+func calculateNextRun(startDateStr, lastRunStr string, freq models.Frequency, customDays int) (string, error) {
+	var base time.Time
+	var err error
+
+	layout := "2006-01-02 15:04:05"
+	now := time.Now()
+
+	// 1. Determine base time
+	if lastRunStr != "" {
+		base, err = time.Parse(layout, lastRunStr)
+	} else if startDateStr != "" {
+		base, err = time.Parse(layout, startDateStr)
+	} else {
+		return "", errors.New("no base date provided")
+	}
+	if err != nil {
+		return "", err
+	}
+
+	// 2. Calculate next run
+	for {
+		switch freq {
+		case models.DAILY:
+			base = base.AddDate(0, 0, 1)
+		case models.WEEKLY:
+			base = base.AddDate(0, 0, 7)
+		case models.MONTHLY:
+			base = base.AddDate(0, 1, 0)
+		case models.CUSTOM:
+			if customDays <= 0 {
+				return "", errors.New("invalid customDays: must be > 0")
+			}
+			base = base.AddDate(0, 0, customDays)
+		default:
+			return "", errors.New("unsupported frequency")
+		}
+
+		if base.After(now) {
+			break
+		}
+	}
+
+	return base.Format(layout), nil
 }

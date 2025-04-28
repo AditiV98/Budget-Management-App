@@ -27,7 +27,7 @@ func (h *dashboardHandler) Get(ctx *gofr.Context) (interface{}, error) {
 		return nil, errors.New("invalid id")
 	}
 
-	f := &filters.Transactions{AccountID: []int{id}, StartDate: startDate[0] + " 00:00:00", EndDate: endDate[0] + " 23:59:59"}
+	f := &filters.Transactions{AccountID: id, StartDate: startDate[0] + " 00:00:00", EndDate: endDate[0] + " 23:59:59"}
 
 	dashboard, err := h.dashboardSvc.Get(ctx, f)
 	if err != nil {

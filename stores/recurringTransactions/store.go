@@ -17,12 +17,20 @@ func New() stores.RecurringTransactions {
 }
 
 func (s *recurringTransactionStore) Create(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) error {
+	var nextRun interface{}
+
+	if recurringTransaction.NextRun == "" {
+		nextRun = nil
+	} else {
+		nextRun = recurringTransaction.NextRun
+	}
+
 	createdAt := time.Now().UTC().Format("2006-01-02 15:04:05")
 
 	res, err := ctx.SQL.ExecContext(ctx, createTransaction, recurringTransaction.UserID, recurringTransaction.Account.ID,
 		recurringTransaction.Amount, recurringTransaction.Type, recurringTransaction.Category, recurringTransaction.Description,
 		recurringTransaction.Frequency, recurringTransaction.CustomDays, recurringTransaction.StartDate, recurringTransaction.EndDate,
-		recurringTransaction.LastRun, recurringTransaction.NextRun, createdAt)
+		nextRun, createdAt)
 	if err != nil {
 		return err
 	}
@@ -42,10 +50,10 @@ func (s *recurringTransactionStore) GetByID(ctx *gofr.Context, id, userID int) (
 		recurringTransaction models.RecurringTransaction
 		deletedAt            sql.NullString
 		createdAt            time.Time
-		startDate            time.Time
-		endDate              time.Time
-		lastRun              time.Time
-		nextRun              time.Time
+		startDate            sql.NullTime
+		endDate              sql.NullTime
+		lastRun              sql.NullTime
+		nextRun              sql.NullTime
 	)
 
 	err := ctx.SQL.QueryRowContext(ctx, getByIDTransactions, id, userID).Scan(&recurringTransaction.ID, &recurringTransaction.UserID,
@@ -60,10 +68,22 @@ func (s *recurringTransactionStore) GetByID(ctx *gofr.Context, id, userID int) (
 	}
 
 	recurringTransaction.CreatedAt = createdAt.Format("2006-01-02T15:04:05.000Z")
-	recurringTransaction.StartDate = startDate.Format("2006-01-02T15:04:05.000Z")
-	recurringTransaction.EndDate = endDate.Format("2006-01-02T15:04:05.000Z")
-	recurringTransaction.LastRun = lastRun.Format("2006-01-02T15:04:05.000Z")
-	recurringTransaction.NextRun = nextRun.Format("2006-01-02T15:04:05.000Z")
+
+	if startDate.Valid {
+		recurringTransaction.StartDate = startDate.Time.Format("2006-01-02T15:04:05.000Z")
+	}
+
+	if endDate.Valid {
+		recurringTransaction.EndDate = endDate.Time.Format("2006-01-02T15:04:05.000Z")
+	}
+
+	if nextRun.Valid {
+		recurringTransaction.NextRun = nextRun.Time.Format("2006-01-02T15:04:05.000Z")
+	}
+
+	if lastRun.Valid {
+		recurringTransaction.LastRun = lastRun.Time.Format("2006-01-02T15:04:05.000Z")
+	}
 
 	if deletedAt.Valid {
 		recurringTransaction.DeletedAt = deletedAt.String
@@ -94,10 +114,10 @@ func (s *recurringTransactionStore) GetAll(ctx *gofr.Context, f *filters.Recurri
 			recurringTransaction models.RecurringTransaction
 			deletedAt            sql.NullString
 			createdAt            time.Time
-			startDate            time.Time
-			endDate              time.Time
-			lastRun              time.Time
-			nextRun              time.Time
+			startDate            sql.NullTime
+			endDate              sql.NullTime
+			lastRun              sql.NullTime
+			nextRun              sql.NullTime
 		)
 
 		err = rows.Scan(&recurringTransaction.ID, &recurringTransaction.UserID,
@@ -108,10 +128,21 @@ func (s *recurringTransactionStore) GetAll(ctx *gofr.Context, f *filters.Recurri
 		}
 
 		recurringTransaction.CreatedAt = createdAt.Format("2006-01-02T15:04:05.000Z")
-		recurringTransaction.StartDate = startDate.Format("2006-01-02T15:04:05.000Z")
-		recurringTransaction.EndDate = endDate.Format("2006-01-02T15:04:05.000Z")
-		recurringTransaction.LastRun = lastRun.Format("2006-01-02T15:04:05.000Z")
-		recurringTransaction.NextRun = nextRun.Format("2006-01-02T15:04:05.000Z")
+		if startDate.Valid {
+			recurringTransaction.StartDate = startDate.Time.Format("2006-01-02T15:04:05.000Z")
+		}
+
+		if endDate.Valid {
+			recurringTransaction.EndDate = endDate.Time.Format("2006-01-02T15:04:05.000Z")
+		}
+
+		if nextRun.Valid {
+			recurringTransaction.NextRun = nextRun.Time.Format("2006-01-02T15:04:05.000Z")
+		}
+
+		if lastRun.Valid {
+			recurringTransaction.LastRun = lastRun.Time.Format("2006-01-02T15:04:05.000Z")
+		}
 
 		if deletedAt.Valid {
 			recurringTransaction.DeletedAt = deletedAt.String
@@ -124,10 +155,23 @@ func (s *recurringTransactionStore) GetAll(ctx *gofr.Context, f *filters.Recurri
 }
 
 func (s *recurringTransactionStore) Update(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) error {
+	var lastRun, nextRun interface{}
+	if recurringTransaction.LastRun == "" {
+		lastRun = nil
+	} else {
+		lastRun = recurringTransaction.LastRun
+	}
+
+	if recurringTransaction.NextRun == "" {
+		nextRun = nil
+	} else {
+		nextRun = recurringTransaction.NextRun
+	}
+
 	_, err := ctx.SQL.ExecContext(ctx, updateTransaction, recurringTransaction.Account.ID, recurringTransaction.Amount,
 		recurringTransaction.Type, recurringTransaction.Category, recurringTransaction.Description, recurringTransaction.Frequency,
-		recurringTransaction.CustomDays, recurringTransaction.StartDate, recurringTransaction.EndDate, recurringTransaction.LastRun,
-		recurringTransaction.NextRun, recurringTransaction.ID)
+		recurringTransaction.CustomDays, recurringTransaction.StartDate, recurringTransaction.EndDate, lastRun,
+		nextRun, recurringTransaction.ID)
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import "strings"
 type RecurringTransactions struct {
 	Type      []string `json:"type"`
 	UserID    int      `json:"userID"`
-	AccountID []int    `json:"accountID"`
+	AccountID int      `json:"accountID"`
 	StartDate string   `json:"startDate"`
 	EndDate   string   `json:"endDate"`
 	Category  []string `json:"category"`
@@ -35,12 +35,9 @@ func (t *RecurringTransactions) WhereClause() (clause string, values []interface
 		t.args = append(t.args, t.UserID)
 	}
 
-	if len(t.AccountID) != 0 {
-		t.clause += ` t.account_id IN (` + placeHolders(len(t.AccountID)) + `) AND`
-
-		for i := range t.AccountID {
-			t.args = append(t.args, t.AccountID[i])
-		}
+	if t.AccountID != 0 {
+		t.clause += ` t.account_id=? AND`
+		t.args = append(t.args, t.AccountID)
 	}
 
 	if t.StartDate != "" && t.EndDate != "" {

@@ -43,8 +43,13 @@ func (h *recurringTransactionsHandler) GetAll(ctx *gofr.Context) (interface{}, e
 	startDate := ctx.Params("startDate")
 	endDate := ctx.Params("endDate")
 
-	f.StartDate = startDate[0] + " 00:00:00"
-	f.EndDate = endDate[0] + " 23:59:59"
+	if len(startDate) != 0 {
+		f.StartDate = startDate[0] + " 00:00:00"
+	}
+
+	if len(endDate) != 0 {
+		f.EndDate = endDate[0] + " 23:59:59"
+	}
 
 	transactions, err := h.recurringTransactionSvc.GetAll(ctx, &f)
 	if err != nil {
