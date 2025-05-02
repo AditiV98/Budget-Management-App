@@ -52,4 +52,5 @@ type RecurringTransactions interface {
 	GetByID(ctx *gofr.Context) (interface{}, error)
 	Update(ctx *gofr.Context) (interface{}, error)
 	Delete(ctx *gofr.Context) (interface{}, error)
+	SkipNextRun(ctx *gofr.Context) (interface{}, error)
 }

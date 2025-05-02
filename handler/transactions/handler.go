@@ -40,6 +40,7 @@ func (h *transactionsHandler) GetAll(ctx *gofr.Context) (interface{}, error) {
 
 	f.Type = ctx.Params("type")
 	f.Category = ctx.Params("category")
+	f.SortBy = ctx.Param("sortBy")
 	startDate := ctx.Params("startDate")
 	endDate := ctx.Params("endDate")
 

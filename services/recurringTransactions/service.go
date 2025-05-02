@@ -2,6 +2,7 @@ package recurringTransactions
 
 import (
 	"errors"
+	"fmt"
 	"gofr.dev/pkg/gofr"
 	"moneyManagement/filters"
 	"moneyManagement/models"
@@ -148,13 +149,20 @@ func calculateNextRun(startDateStr, lastRunStr string, freq models.Frequency, cu
 	// 1. Determine base time
 	if lastRunStr != "" {
 		base, err = time.Parse(layout, lastRunStr)
+		if err != nil {
+			return "", err
+		}
 	} else if startDateStr != "" {
 		base, err = time.Parse(layout, startDateStr)
+		if err != nil {
+			return "", err
+		}
+
+		if base.After(now) {
+			return base.Format(layout), nil
+		}
 	} else {
 		return "", errors.New("no base date provided")
-	}
-	if err != nil {
-		return "", err
 	}
 
 	// 2. Calculate next run
@@ -181,4 +189,47 @@ func calculateNextRun(startDateStr, lastRunStr string, freq models.Frequency, cu
 	}
 
 	return base.Format(layout), nil
+}
+
+func (s *recurringTransactionSvc) SkipNextRun(ctx *gofr.Context, id int) error {
+	userID, _ := ctx.Value("userID").(int)
+
+	transaction, err := s.recurringTransactionStore.GetByID(ctx, id, userID)
+	if err != nil {
+		return err
+	}
+
+	layout := time.RFC3339
+	next, err := time.Parse(layout, transaction.NextRun)
+	if err != nil {
+		return fmt.Errorf("invalid NextRun format: %v", err)
+	}
+
+	var newNextRun time.Time
+
+	switch transaction.Frequency {
+	case "DAILY":
+		newNextRun = next.AddDate(0, 0, 1)
+	case "WEEKLY":
+		newNextRun = next.AddDate(0, 0, 7)
+	case "MONTHLY":
+		newNextRun = next.AddDate(0, 1, 0)
+	case "CUSTOM":
+		newNextRun = next.AddDate(0, 0, transaction.CustomDays)
+	default:
+		return errors.New("unsupported frequency")
+	}
+
+	transaction.NextRun = newNextRun.Format(layout)
+
+	transaction.NextRun, _ = convertToMySQLDate(transaction.NextRun)
+	transaction.StartDate, _ = convertToMySQLDate(transaction.StartDate)
+	transaction.EndDate, _ = convertToMySQLDate(transaction.EndDate)
+
+	err = s.recurringTransactionStore.Update(ctx, transaction)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

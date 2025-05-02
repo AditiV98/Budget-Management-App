@@ -9,6 +9,7 @@ type Transactions struct {
 	StartDate string   `json:"startDate"`
 	EndDate   string   `json:"endDate"`
 	Category  []string `json:"category"`
+	SortBy    string   `json:"sortBy"`
 	clause    string
 	args      []interface{}
 }

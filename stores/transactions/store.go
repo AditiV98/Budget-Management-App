@@ -72,6 +72,10 @@ func (s *transactionStore) GetAll(ctx *gofr.Context, f *filters.Transactions) ([
 
 	query := getAllTransactions + clause + " ORDER BY transaction_date"
 
+	if f.SortBy == "DESC" {
+		query += " DESC"
+	}
+
 	rows, err := ctx.SQL.QueryContext(ctx, query, val...)
 	if err != nil {
 		return nil, err

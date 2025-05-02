@@ -41,7 +41,7 @@ func (t *RecurringTransactions) WhereClause() (clause string, values []interface
 	}
 
 	if t.StartDate != "" && t.EndDate != "" {
-		t.clause += ` t.transaction_date>=? AND t.transaction_date<=? AND`
+		t.clause += ` t.next_run>=? AND t.next_run<=? AND`
 		t.args = append(t.args, t.StartDate, t.EndDate)
 	}
 

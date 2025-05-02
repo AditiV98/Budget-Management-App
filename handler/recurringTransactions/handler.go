@@ -115,3 +115,19 @@ func (h *recurringTransactionsHandler) Delete(ctx *gofr.Context) (interface{}, e
 
 	return "transaction deleted successfully", nil
 }
+
+func (h *recurringTransactionsHandler) SkipNextRun(ctx *gofr.Context) (interface{}, error) {
+	idString := strings.TrimSpace(ctx.PathParam("id"))
+
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		return nil, errors.New("invalid id")
+	}
+
+	err = h.recurringTransactionSvc.SkipNextRun(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return "Transaction skipped successfully", nil
+}

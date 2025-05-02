@@ -93,6 +93,7 @@ func main() {
 	app.GET("/recurring-transaction", recurringTransactionHandler.GetAll)
 	app.GET("/recurring-transaction/{id}", recurringTransactionHandler.GetByID)
 	app.PUT("/recurring-transaction/{id}", recurringTransactionHandler.Update)
+	app.POST("/recurring-transaction/{id}/skip", recurringTransactionHandler.SkipNextRun)
 	app.DELETE("/recurring-transaction/{id}", recurringTransactionHandler.Delete)
 
 	app.POST("/google-token", authHandler.CreateToken)

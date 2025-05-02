@@ -69,4 +69,5 @@ type RecurringTransactions interface {
 	GetByID(ctx *gofr.Context, id int) (*models.RecurringTransaction, error)
 	Update(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) (*models.RecurringTransaction, error)
 	Delete(ctx *gofr.Context, id int) error
+	SkipNextRun(ctx *gofr.Context, id int) error
 }
