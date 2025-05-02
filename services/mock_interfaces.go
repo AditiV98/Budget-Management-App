@@ -752,6 +752,20 @@ func (mr *MockRecurringTransactionsMockRecorder) GetByID(ctx, id any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRecurringTransactions)(nil).GetByID), ctx, id)
 }
 
+// SkipNextRun mocks base method.
+func (m *MockRecurringTransactions) SkipNextRun(ctx *gofr.Context, id int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SkipNextRun", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SkipNextRun indicates an expected call of SkipNextRun.
+func (mr *MockRecurringTransactionsMockRecorder) SkipNextRun(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SkipNextRun", reflect.TypeOf((*MockRecurringTransactions)(nil).SkipNextRun), ctx, id)
+}
+
 // Update mocks base method.
 func (m *MockRecurringTransactions) Update(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) (*models.RecurringTransaction, error) {
 	m.ctrl.T.Helper()
