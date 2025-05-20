@@ -51,6 +51,7 @@ const (
   type ENUM('FD', 'Mutual Funds', 'Stocks', 'Gold ETFs','Other') NOT NULL,
   category VARCHAR(255),
   amount FLOAT NOT NULL,
+  status VARCHAR(50),
   current_value FLOAT,
   start_date DATE,
   maturity_date DATE,

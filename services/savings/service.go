@@ -3,18 +3,21 @@ package savings
 import (
 	"gofr.dev/pkg/gofr"
 	"gofr.dev/pkg/gofr/datasource/sql"
+	"moneyManagement/filters"
 	"moneyManagement/models"
 	"moneyManagement/services"
 	"moneyManagement/stores"
 )
 
 type savingsSvc struct {
-	savingsStore stores.Savings
+	savingsStore     stores.Savings
+	transactionStore stores.Transactions
 }
 
-func New(savingsStore stores.Savings) services.Savings {
+func New(savingsStore stores.Savings, transactionStore stores.Transactions) services.Savings {
 	return &savingsSvc{
-		savingsStore: savingsStore,
+		savingsStore:     savingsStore,
+		transactionStore: transactionStore,
 	}
 }
 
@@ -27,6 +30,10 @@ func (s *savingsSvc) Create(ctx *gofr.Context, savings *models.Savings) (*models
 	defer func() {
 		_ = tx.Rollback()
 	}()
+
+	userID, _ := ctx.Value("userID").(int)
+
+	savings.UserID = userID
 
 	err = s.savingsStore.Create(ctx, savings, tx)
 	if err != nil {
@@ -73,10 +80,37 @@ func (s *savingsSvc) GetByTransactionID(ctx *gofr.Context, id int) (*models.Savi
 	return savings, nil
 }
 
-func (s *savingsSvc) GetAll(ctx *gofr.Context) ([]*models.Savings, error) {
-	allSavings, err := s.savingsStore.GetAll(ctx)
+func (s *savingsSvc) GetAll(ctx *gofr.Context, f *filters.Savings) ([]*models.Savings, error) {
+	userID, _ := ctx.Value("userID").(int)
+
+	f.UserID = userID
+
+	allSavings, err := s.savingsStore.GetAll(ctx, f)
 	if err != nil {
 		return nil, err
+	}
+
+	transactionIDs := make([]int, 0)
+
+	for i := range allSavings {
+		transactionIDs = append(transactionIDs, allSavings[i].TransactionID)
+	}
+
+	transactions, err := s.transactionStore.GetAll(ctx, &filters.Transactions{ID: transactionIDs})
+	if err != nil {
+		return nil, err
+	}
+
+	m := make(map[int]*models.Transaction)
+
+	for j := range transactions {
+		m[transactions[j].ID] = transactions[j]
+	}
+
+	for k := range allSavings {
+		if v, ok := m[allSavings[k].TransactionID]; ok {
+			allSavings[k].Account = v.Account
+		}
 	}
 
 	return allSavings, nil
@@ -91,6 +125,10 @@ func (s *savingsSvc) Update(ctx *gofr.Context, savings *models.Savings) (*models
 	defer func() {
 		_ = tx.Rollback()
 	}()
+
+	userID, _ := ctx.Value("userID").(int)
+
+	savings.UserID = userID
 
 	err = s.savingsStore.Update(ctx, savings, tx)
 	if err != nil {

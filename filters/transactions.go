@@ -3,6 +3,7 @@ package filters
 import "strings"
 
 type Transactions struct {
+	ID        []int    `json:"id"`
 	Type      []string `json:"type"`
 	UserID    int      `json:"userID"`
 	AccountID int      `json:"accountID"`
@@ -15,8 +16,16 @@ type Transactions struct {
 }
 
 func (t *Transactions) WhereClause() (clause string, values []interface{}) {
+	if len(t.ID) != 0 {
+		t.clause += `t.id IN (` + placeHolders(len(t.ID)) + `) AND`
+
+		for i := range t.ID {
+			t.args = append(t.args, t.ID[i])
+		}
+	}
+
 	if len(t.Type) != 0 {
-		t.clause += `t.type IN (` + placeHolders(len(t.Type)) + `) AND`
+		t.clause += ` t.type IN (` + placeHolders(len(t.Type)) + `) AND`
 
 		for i := range t.Type {
 			t.args = append(t.args, t.Type[i])

@@ -41,7 +41,7 @@ func main() {
 
 	userSvc := usersService.New(userStore)
 	accountSvc := accountService.New(accountStore, userSvc)
-	savingsSvc := savingsService.New(savingStore)
+	savingsSvc := savingsService.New(savingStore, transactionStore)
 	transactionSvc := transactionService.New(transactionStore, accountSvc, savingsSvc, userSvc)
 	dashboardSvc := dashboardService.New(accountSvc, transactionSvc, userSvc)
 	recurringTransactionSvc := recurringTransactionService.New(recurringTransactionStore, userSvc)

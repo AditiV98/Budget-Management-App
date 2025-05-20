@@ -65,11 +65,6 @@ func (s *accountSvc) GetByID(ctx *gofr.Context, id int) (*models.Account, error)
 func (s *accountSvc) GetAll(ctx *gofr.Context, f *filters.Account) ([]*models.Account, error) {
 	userID, _ := ctx.Value("userID").(int)
 
-	//user, err := s.userSvc.GetAll(ctx, &filters.User{Email: userEmail})
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	f.UserID = userID
 
 	accounts, err := s.accountStore.GetAll(ctx, f)

@@ -39,7 +39,7 @@ type Transactions interface {
 type Savings interface {
 	Create(ctx *gofr.Context, savings *models.Savings) (*models.Savings, error)
 	CreateWithTx(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) error
-	GetAll(ctx *gofr.Context) ([]*models.Savings, error)
+	GetAll(ctx *gofr.Context, f *filters.Savings) ([]*models.Savings, error)
 	GetByID(ctx *gofr.Context, id int) (*models.Savings, error)
 	Update(ctx *gofr.Context, savings *models.Savings) (*models.Savings, error)
 	UpdateWithTx(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) error

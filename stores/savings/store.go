@@ -5,6 +5,7 @@ import (
 	"gofr.dev/pkg/gofr"
 	"gofr.dev/pkg/gofr/datasource"
 	datasourceSQL "gofr.dev/pkg/gofr/datasource/sql"
+	"moneyManagement/filters"
 	"moneyManagement/models"
 	"moneyManagement/stores"
 	"time"
@@ -34,7 +35,7 @@ func (s *savingsStore) Create(ctx *gofr.Context, savings *models.Savings, tx *da
 	}
 
 	res, err := tx.ExecContext(ctx, createSavings, savings.UserID, savings.TransactionID, savings.Type,
-		savings.Category, savings.Amount, savings.CurrentValue, startDate, maturityDate, createdAt)
+		savings.Category, savings.Amount, savings.CurrentValue, startDate, maturityDate, createdAt, savings.Status)
 	if err != nil {
 		return err
 	}
@@ -59,7 +60,7 @@ func (s *savingsStore) GetByID(ctx *gofr.Context, id int) (*models.Savings, erro
 
 	err := ctx.SQL.QueryRowContext(ctx, getByIDSavings, id).Scan(&savings.ID, &savings.UserID, &savings.TransactionID,
 		&savings.Type, &savings.Category, &savings.Amount, &savings.CurrentValue, &savings.StartDate, &maturityDate,
-		&createdAt, &deletedAt)
+		&createdAt, &deletedAt, &savings.Status)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
@@ -113,10 +114,14 @@ func (s *savingsStore) GetByTransactionID(ctx *gofr.Context, id int) (*models.Sa
 	return &savings, nil
 }
 
-func (s *savingsStore) GetAll(ctx *gofr.Context) ([]*models.Savings, error) {
+func (s *savingsStore) GetAll(ctx *gofr.Context, f *filters.Savings) ([]*models.Savings, error) {
 	var allSavings []*models.Savings
 
-	rows, err := ctx.SQL.QueryContext(ctx, getAllSavings)
+	clause, val := f.WhereClause()
+
+	query := getAllSavings + clause
+
+	rows, err := ctx.SQL.QueryContext(ctx, query, val...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +141,7 @@ func (s *savingsStore) GetAll(ctx *gofr.Context) ([]*models.Savings, error) {
 
 		err = rows.Scan(&savings.ID, &savings.UserID, &savings.TransactionID, &savings.Type, &savings.Category,
 			&savings.Amount, &savings.CurrentValue, &savings.StartDate, &maturityDate,
-			&createdAt, &deletedAt)
+			&createdAt, &deletedAt, &savings.Status)
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +178,7 @@ func (s *savingsStore) Update(ctx *gofr.Context, savings *models.Savings, tx *da
 	}
 
 	_, err := tx.ExecContext(ctx, updateSavings, savings.Type, savings.Category, savings.Amount, savings.CurrentValue,
-		startDate, maturityDate, savings.ID)
+		startDate, maturityDate, savings.Status, savings.ID)
 	if err != nil {
 		return err
 	}

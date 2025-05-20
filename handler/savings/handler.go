@@ -3,6 +3,7 @@ package savings
 import (
 	"errors"
 	"gofr.dev/pkg/gofr"
+	"moneyManagement/filters"
 	"moneyManagement/handler"
 	"moneyManagement/models"
 	"moneyManagement/services"
@@ -35,7 +36,15 @@ func (h *savings) Create(ctx *gofr.Context) (interface{}, error) {
 }
 
 func (h *savings) GetAll(ctx *gofr.Context) (interface{}, error) {
-	saving, err := h.savingsSvc.GetAll(ctx)
+	var f filters.Savings
+
+	startDate := ctx.Params("startDate")
+	endDate := ctx.Params("endDate")
+
+	f.StartDate = startDate[0] + " 00:00:00"
+	f.EndDate = endDate[0] + " 23:59:59"
+
+	saving, err := h.savingsSvc.GetAll(ctx, &f)
 	if err != nil {
 		return nil, err
 	}
