@@ -3,9 +3,10 @@ package filters
 import "strings"
 
 type Savings struct {
-	UserID    int    `json:"email"`
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
+	UserID    int      `json:"email"`
+	StartDate string   `json:"startDate"`
+	EndDate   string   `json:"endDate"`
+	Category  []string `json:"category"`
 	clause    string
 	args      []interface{}
 }
@@ -19,6 +20,14 @@ func (f *Savings) WhereClause() (clause string, values []interface{}) {
 	if f.StartDate != "" && f.EndDate != "" {
 		f.clause += ` start_date>=? AND start_date<=? AND`
 		f.args = append(f.args, f.StartDate, f.EndDate)
+	}
+
+	if len(f.Category) != 0 {
+		f.clause += ` category IN (` + placeHolders(len(f.Category)) + `) AND`
+
+		for i := range f.Category {
+			f.args = append(f.args, f.Category[i])
+		}
 	}
 
 	if f.clause != "" {

@@ -36,13 +36,30 @@ func (h *transactionsHandler) Create(ctx *gofr.Context) (interface{}, error) {
 }
 
 func (h *transactionsHandler) GetAll(ctx *gofr.Context) (interface{}, error) {
-	var f filters.Transactions
+	var (
+		f   filters.Transactions
+		err error
+		id  int
+	)
 
 	f.Type = ctx.Params("type")
 	f.Category = ctx.Params("category")
 	f.SortBy = ctx.Param("sortBy")
 	startDate := ctx.Params("startDate")
 	endDate := ctx.Params("endDate")
+
+	accountID := ctx.Param("accountID")
+
+	if accountID != "" {
+		id, err = strconv.Atoi(accountID)
+		if err != nil {
+			return nil, errors.New("invalid account id")
+		}
+	}
+
+	if id != 0 {
+		f.AccountID = id
+	}
 
 	f.StartDate = startDate[0] + " 00:00:00"
 	f.EndDate = endDate[0] + " 23:59:59"

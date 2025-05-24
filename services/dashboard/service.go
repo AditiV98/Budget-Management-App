@@ -14,10 +14,11 @@ type dashboardService struct {
 	accountSvc      services.Account
 	transactionsSvc services.Transactions
 	userSvc         services.User
+	savingSvc       services.Savings
 }
 
-func New(accountSvc services.Account, transactionsSvc services.Transactions, userSvc services.User) services.Dashboard {
-	return &dashboardService{accountSvc: accountSvc, transactionsSvc: transactionsSvc, userSvc: userSvc}
+func New(accountSvc services.Account, transactionsSvc services.Transactions, userSvc services.User, savingSvc services.Savings) services.Dashboard {
+	return &dashboardService{accountSvc: accountSvc, transactionsSvc: transactionsSvc, userSvc: userSvc, savingSvc: savingSvc}
 }
 
 func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (models.Dashboard, error) {
@@ -37,6 +38,11 @@ func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (mode
 		return models.Dashboard{}, err
 	}
 
+	savings, err := s.savingSvc.GetAll(ctx, &filters.Savings{UserID: userID, StartDate: f.StartDate, EndDate: f.EndDate})
+	if err != nil {
+		return models.Dashboard{}, err
+	}
+
 	expenseMap := make(map[string]float64)
 	incomeMap := make(map[string]float64)
 	savingsMap := make(map[string]float64)
@@ -49,9 +55,13 @@ func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (mode
 		case models.INCOME:
 			dashboard.TotalIncome += txn.Amount
 			incomeMap[txn.Category] += txn.Amount
-		case models.SAVINGS:
-			dashboard.TotalSavings += txn.Amount
-			savingsMap[txn.Category] += txn.Amount
+		}
+	}
+
+	for _, saving := range savings {
+		if saving.Status == "ACTIVE" {
+			dashboard.TotalSavings += saving.Amount
+			savingsMap[saving.Category] += saving.Amount
 		}
 	}
 

@@ -7,6 +7,7 @@ import (
 	"moneyManagement/models"
 	"moneyManagement/services"
 	"moneyManagement/stores"
+	"time"
 )
 
 type savingsSvc struct {
@@ -129,6 +130,7 @@ func (s *savingsSvc) Update(ctx *gofr.Context, savings *models.Savings) (*models
 	userID, _ := ctx.Value("userID").(int)
 
 	savings.UserID = userID
+	savings.MaturityDate, _ = convertToMySQLDate(savings.MaturityDate)
 
 	err = s.savingsStore.Update(ctx, savings, tx)
 	if err != nil {
@@ -144,6 +146,13 @@ func (s *savingsSvc) Update(ctx *gofr.Context, savings *models.Savings) (*models
 	if err != nil {
 		return nil, err
 	}
+
+	txn, err := s.transactionStore.GetByID(ctx, updatedSaving.TransactionID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedSaving.Account = txn.Account
 
 	return updatedSaving, nil
 }
@@ -171,4 +180,21 @@ func (s *savingsSvc) Delete(ctx *gofr.Context, id int) error {
 	}
 
 	return nil
+}
+
+func (s *savingsSvc) DeleteWithTx(ctx *gofr.Context, txnID int, tx *sql.Tx) error {
+	err := s.savingsStore.DeleteWithTx(ctx, txnID, tx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func convertToMySQLDate(isoDate string) (string, error) {
+	t, err := time.Parse(time.RFC3339, isoDate) // Parses "2025-03-20T07:49:00.000Z"
+	if err != nil {
+		return "", err
+	}
+	return t.Format("2006-01-02 15:04:05"), nil // Converts to "2025-03-20 07:49:00"
 }

@@ -40,6 +40,7 @@ type Savings interface {
 	Delete(ctx *gofr.Context, id int) error
 	UpdateWIthTransactionID(ctx *gofr.Context, savings *models.Savings, tx *sql.Tx) error
 	GetByTransactionID(ctx *gofr.Context, id int) (*models.Savings, error)
+	DeleteWithTx(ctx *gofr.Context, txnID int, tx *sql.Tx) error
 }
 
 type SavingsSource interface {

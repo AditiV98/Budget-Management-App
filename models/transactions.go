@@ -35,6 +35,13 @@ type Transaction struct {
 	TransactionDate string         `json:"transactionDate"`
 	CreatedAt       string         `json:"createdAt"`
 	DeletedAt       string         `json:"deletedAt,omitempty"`
+	WithdrawFrom    int64          `json:"withdrawFrom"`
+	MetaData        MetaData       `json:"metaData"`
+}
+
+type MetaData struct {
+	TransferTo   int `json:"transferTo"`
+	TransferFrom int `json:"transferFrom"`
 }
 
 type AccountDetails struct {

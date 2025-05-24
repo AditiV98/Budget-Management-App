@@ -45,6 +45,7 @@ type Savings interface {
 	UpdateWithTx(ctx *gofr.Context, savings *models.Savings, IsTransactionID bool, tx *sql.Tx) error
 	Delete(ctx *gofr.Context, id int) error
 	GetByTransactionID(ctx *gofr.Context, id int) (*models.Savings, error)
+	DeleteWithTx(ctx *gofr.Context, txnID int, tx *sql.Tx) error
 }
 
 type Dashboard interface {

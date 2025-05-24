@@ -5,7 +5,9 @@ go 1.23.0
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
-	github.com/unidoc/unipdf/v3 v3.68.0
+	github.com/gorilla/mux v1.8.1
+	github.com/stretchr/testify v1.10.0
+	go.uber.org/mock v0.5.0
 	gofr.dev v1.30.0
 	google.golang.org/api v0.228.0
 )
@@ -28,7 +30,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sql-driver/mysql v1.9.1 // indirect
@@ -36,7 +37,6 @@ require (
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.1 // indirect
-	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 // indirect
@@ -59,12 +59,6 @@ require (
 	github.com/redis/go-redis/v9 v9.7.3 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/segmentio/kafka-go v0.4.47 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
-	github.com/unidoc/freetype v0.2.3 // indirect
-	github.com/unidoc/pkcs7 v0.2.0 // indirect
-	github.com/unidoc/timestamp v0.0.0-20200412005513-91597fd3793a // indirect
-	github.com/unidoc/unitype v0.5.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0 // indirect
@@ -80,10 +74,8 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
-	go.uber.org/mock v0.5.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
-	golang.org/x/image v0.24.0 // indirect
 	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/oauth2 v0.29.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
@@ -91,7 +83,6 @@ require (
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/genproto v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect

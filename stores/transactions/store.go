@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"database/sql"
+	"encoding/json"
 	"gofr.dev/pkg/gofr"
 	"gofr.dev/pkg/gofr/datasource"
 	datasourceSQL "gofr.dev/pkg/gofr/datasource/sql"
@@ -20,8 +21,17 @@ func New() stores.Transactions {
 func (s *transactionStore) Create(ctx *gofr.Context, transaction *models.Transaction, tx *datasourceSQL.Tx) error {
 	createdAt := time.Now().UTC().Format("2006-01-02 15:04:05")
 
+	var withdrawFrom sql.NullInt64
+
+	if transaction.WithdrawFrom != 0 {
+		withdrawFrom = sql.NullInt64{Valid: true, Int64: transaction.WithdrawFrom}
+	}
+
+	jsonData, _ := json.Marshal(transaction.MetaData)
+
 	res, err := tx.ExecContext(ctx, createTransaction, transaction.UserID, transaction.Account.ID, transaction.Amount,
-		transaction.Type, transaction.Category, transaction.Description, transaction.TransactionDate, createdAt)
+		transaction.Type, transaction.Category, transaction.Description, transaction.TransactionDate, createdAt,
+		withdrawFrom, string(jsonData))
 	if err != nil {
 		return err
 	}
@@ -42,11 +52,13 @@ func (s *transactionStore) GetByID(ctx *gofr.Context, id, userID int) (*models.T
 		deletedAt       sql.NullString
 		createdAt       time.Time
 		transactionDate time.Time
+		withdrawFrom    sql.NullInt64
+		metaData        sql.NullString
 	)
 
 	err := ctx.SQL.QueryRowContext(ctx, getByIDTransactions, id, userID).Scan(&transaction.ID, &transaction.UserID,
 		&transaction.Account.ID, &transaction.Amount, &transaction.Type, &transaction.Category, &transaction.Description,
-		&transactionDate, &createdAt, &deletedAt, &transaction.Account.Name)
+		&transactionDate, &createdAt, &deletedAt, &withdrawFrom, &metaData, &transaction.Account.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -60,6 +72,14 @@ func (s *transactionStore) GetByID(ctx *gofr.Context, id, userID int) (*models.T
 
 	if deletedAt.Valid {
 		transaction.DeletedAt = deletedAt.String
+	}
+
+	if withdrawFrom.Valid {
+		transaction.WithdrawFrom = withdrawFrom.Int64
+	}
+
+	if metaData.Valid {
+		_ = json.Unmarshal([]byte(metaData.String), &transaction.MetaData)
 	}
 
 	return &transaction, nil
@@ -92,10 +112,13 @@ func (s *transactionStore) GetAll(ctx *gofr.Context, f *filters.Transactions) ([
 			deletedAt       sql.NullString
 			createdAt       time.Time
 			transactionDate time.Time
+			withdrawFrom    sql.NullInt64
+			metaData        sql.NullString
 		)
 
 		err = rows.Scan(&transaction.ID, &transaction.UserID, &transaction.Account.ID, &transaction.Amount, &transaction.Type,
-			&transaction.Category, &transaction.Description, &transactionDate, &createdAt, &deletedAt, &transaction.Account.Name)
+			&transaction.Category, &transaction.Description, &transactionDate, &createdAt, &deletedAt, &withdrawFrom,
+			&metaData, &transaction.Account.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -107,6 +130,14 @@ func (s *transactionStore) GetAll(ctx *gofr.Context, f *filters.Transactions) ([
 			transaction.DeletedAt = deletedAt.String
 		}
 
+		if withdrawFrom.Valid {
+			transaction.WithdrawFrom = withdrawFrom.Int64
+		}
+
+		if metaData.Valid {
+			_ = json.Unmarshal([]byte(metaData.String), &transaction.MetaData)
+		}
+
 		allTransactions = append(allTransactions, &transaction)
 	}
 
@@ -114,7 +145,10 @@ func (s *transactionStore) GetAll(ctx *gofr.Context, f *filters.Transactions) ([
 }
 
 func (s *transactionStore) Update(ctx *gofr.Context, transaction *models.Transaction, tx *datasourceSQL.Tx) error {
-	_, err := tx.ExecContext(ctx, updateTransaction, transaction.Account.ID, transaction.Amount, transaction.Type, transaction.Category, transaction.Description, transaction.TransactionDate, transaction.ID)
+	jsonData, _ := json.Marshal(transaction.MetaData)
+
+	_, err := tx.ExecContext(ctx, updateTransaction, transaction.Account.ID, transaction.Amount, transaction.Type,
+		transaction.Category, transaction.Description, transaction.TransactionDate, string(jsonData), transaction.ID)
 	if err != nil {
 		return err
 	}

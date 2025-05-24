@@ -43,7 +43,7 @@ func main() {
 	accountSvc := accountService.New(accountStore, userSvc)
 	savingsSvc := savingsService.New(savingStore, transactionStore)
 	transactionSvc := transactionService.New(transactionStore, accountSvc, savingsSvc, userSvc)
-	dashboardSvc := dashboardService.New(accountSvc, transactionSvc, userSvc)
+	dashboardSvc := dashboardService.New(accountSvc, transactionSvc, userSvc, savingsSvc)
 	recurringTransactionSvc := recurringTransactionService.New(recurringTransactionStore, userSvc)
 	authSvc := auth.New(app.Config.Get("REFRESH_SECRET"), app.Config.Get("ACCESS_SECRET"), app.Config.Get("GOOGLE_CLIENT_ID"),
 		app.Config.Get("GOOGLE_CLIENT_SECRET"), app.Config.Get("REDIRECT_URL"))
