@@ -41,6 +41,7 @@ func (h *savings) GetAll(ctx *gofr.Context) (interface{}, error) {
 	startDate := ctx.Params("startDate")
 	endDate := ctx.Params("endDate")
 	f.Category = ctx.Params("category")
+	status := ctx.Params("status")
 
 	if startDate != nil {
 		f.StartDate = startDate[0] + " 00:00:00"
@@ -48,6 +49,10 @@ func (h *savings) GetAll(ctx *gofr.Context) (interface{}, error) {
 
 	if endDate != nil {
 		f.EndDate = endDate[0] + " 23:59:59"
+	}
+
+	if status != nil {
+		f.Status = status[0]
 	}
 
 	saving, err := h.savingsSvc.GetAll(ctx, &f)

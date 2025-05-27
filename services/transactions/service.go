@@ -33,7 +33,6 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 		return nil, err
 	}
 
-	// Ensure rollback only if an error occurs
 	defer func() {
 		if err != nil {
 			_ = tx.Rollback()
@@ -45,13 +44,11 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 	transaction.UserID = userID
 	transaction.TransactionDate, _ = convertToMySQLDate(transaction.TransactionDate)
 
-	// 1️⃣ Lock the Account Row First using FOR UPDATE
 	account, err := s.accountSvc.GetByIDForUpdate(ctx, transaction.Account.ID, userID, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2️⃣ Update Account Balance Immediately
 	if transaction.Type == "INCOME" {
 		a := account.Balance + transaction.Amount
 		ctx.Logger.Warnf("transaction.Type :%v,transaction.Amount:%v,previous account balance :%v, new account balance: %v", "INCOME", transaction.Amount, account.Balance, a)
@@ -97,19 +94,16 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 		}
 	}
 
-	// ✅ Update account balance before inserting transaction
 	_, err = s.accountSvc.UpdateWithTx(ctx, account, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	// 3️⃣ Insert the Transaction Record
 	err = s.transactionStore.Create(ctx, transaction, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	// 4️⃣ Insert into Savings only if it's a "SAVINGS" transaction
 	if transaction.Type == "SAVINGS" {
 		savings := &models.Savings{
 			UserID: transaction.UserID, Amount: transaction.Amount, Category: transaction.Category,
@@ -128,11 +122,15 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 			return nil, er
 		}
 
-		if saving.CurrentValue < transaction.Amount {
+		if (saving.CurrentValue != 0 && saving.CurrentValue < transaction.Amount) || (saving.CurrentValue == 0 && saving.Amount < transaction.Amount) {
 			return nil, errors.New("withdrawal amount cannot exceed the saved amount")
 		}
 
 		saving.WithdrawnAmount += transaction.Amount
+
+		if (saving.CurrentValue != 0 && saving.CurrentValue == transaction.Amount) || (saving.CurrentValue == 0 && saving.Amount == transaction.Amount) {
+			saving.Status = "INACTIVE"
+		}
 
 		err = s.savingsSvc.UpdateWithTx(ctx, saving, true, tx)
 		if err != nil {
@@ -141,13 +139,11 @@ func (s *transactionSvc) Create(ctx *gofr.Context, transaction *models.Transacti
 
 	}
 
-	// 5️⃣ Commit Transaction
 	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
 
-	// 6️⃣ Fetch and return the newly created transaction after commit
 	newTransaction, err := s.GetByID(ctx, transaction.ID)
 	if err != nil {
 		return nil, err

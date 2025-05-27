@@ -7,11 +7,13 @@ type ChartData struct {
 }
 
 type Dashboard struct {
-	TotalIncome      float64     `json:"totalIncome"`
-	TotalExpense     float64     `json:"totalExpense"`
-	TotalSavings     float64     `json:"totalSavings"`
-	RemainingBalance float64     `json:"remainingBalance"`
-	ExpenseBreakdown []ChartData `json:"expenseBreakdown"`
-	SavingsBreakdown []ChartData `json:"savingsBreakdown"`
-	IncomeBreakdown  []ChartData `json:"incomeBreakdown"`
+	TotalIncome       float64     `json:"totalIncome"`
+	TotalExpense      float64     `json:"totalExpense"`
+	TotalSavings      float64     `json:"totalSavings"`
+	TotalInterest     float64     `json:"totalInterest"`
+	RemainingBalance  float64     `json:"remainingBalance"`
+	ExpenseBreakdown  []ChartData `json:"expenseBreakdown"`
+	SavingsBreakdown  []ChartData `json:"savingsBreakdown"`
+	IncomeBreakdown   []ChartData `json:"incomeBreakdown"`
+	InterestBreakdown []ChartData `json:"interestBreakdown"`
 }

@@ -14,4 +14,5 @@ type Savings struct {
 	CreatedAt       string         `json:"createdAt"`
 	DeletedAt       string         `json:"deletedAt,omitempty"`
 	Account         AccountDetails `json:"account"`
+	Description     string         `json:"description"`
 }

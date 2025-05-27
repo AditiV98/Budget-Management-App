@@ -46,6 +46,7 @@ func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (mode
 	expenseMap := make(map[string]float64)
 	incomeMap := make(map[string]float64)
 	savingsMap := make(map[string]float64)
+	interestMap := make(map[string]float64)
 
 	for _, txn := range transactions {
 		switch txn.Type {
@@ -63,6 +64,11 @@ func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (mode
 			dashboard.TotalSavings += saving.Amount
 			savingsMap[saving.Category] += saving.Amount
 		}
+
+		if saving.Status == "ACTIVE" && saving.CurrentValue != 0 {
+			dashboard.TotalInterest += saving.CurrentValue - saving.Amount
+			interestMap[saving.Category] += saving.CurrentValue - saving.Amount
+		}
 	}
 
 	dashboard.RemainingBalance = account.Balance
@@ -70,6 +76,7 @@ func (s *dashboardService) Get(ctx *gofr.Context, f *filters.Transactions) (mode
 	dashboard.ExpenseBreakdown = mapToChartData(expenseMap)
 	dashboard.IncomeBreakdown = mapToChartData(incomeMap)
 	dashboard.SavingsBreakdown = mapToChartData(savingsMap)
+	dashboard.InterestBreakdown = mapToChartData(interestMap)
 
 	return dashboard, nil
 }

@@ -37,6 +37,7 @@ type Transaction struct {
 	DeletedAt       string         `json:"deletedAt,omitempty"`
 	WithdrawFrom    int64          `json:"withdrawFrom"`
 	MetaData        MetaData       `json:"metaData"`
+	Saving          SavingDetails  `json:"saving"`
 }
 
 type MetaData struct {
@@ -47,6 +48,14 @@ type MetaData struct {
 type AccountDetails struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+type SavingDetails struct {
+	ID            int     `json:"id"`
+	Status        string  `json:"status"`
+	TransactionID int     `json:"transactionID"`
+	Amount        float64 `json:"amount"`
+	CurrentValue  float64 `json:"currentValue"`
 }
 
 // Validate checks if the transaction fields are valid

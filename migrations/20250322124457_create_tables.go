@@ -55,6 +55,7 @@ const (
   amount FLOAT NOT NULL,
   withdrawn_amount FLOAT DEFAULT NULL,
   status VARCHAR(50) DEFAULT 'ACTIVE',
+  description TEXT,
   current_value FLOAT,
   start_date TIMESTAMP,
   maturity_date TIMESTAMP,

@@ -35,7 +35,7 @@ func (s *savingsStore) Create(ctx *gofr.Context, savings *models.Savings, tx *da
 	}
 
 	res, err := tx.ExecContext(ctx, createSavings, savings.UserID, savings.TransactionID,
-		savings.Category, savings.Amount, savings.CurrentValue, startDate, maturityDate, createdAt, savings.Status)
+		savings.Category, savings.Amount, savings.CurrentValue, startDate, maturityDate, createdAt, savings.Status, savings.Description)
 	if err != nil {
 		return err
 	}
@@ -57,11 +57,12 @@ func (s *savingsStore) GetByID(ctx *gofr.Context, id int) (*models.Savings, erro
 		deletedAt       sql.NullString
 		createdAt       time.Time
 		withdrawnAmount sql.NullFloat64
+		description     sql.NullString
 	)
 
 	err := ctx.SQL.QueryRowContext(ctx, getByIDSavings, id).Scan(&savings.ID, &savings.UserID, &savings.TransactionID,
 		&savings.Category, &savings.Amount, &savings.CurrentValue, &savings.StartDate, &maturityDate,
-		&createdAt, &deletedAt, &savings.Status, &withdrawnAmount)
+		&createdAt, &deletedAt, &savings.Status, &withdrawnAmount, &description)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
@@ -82,6 +83,10 @@ func (s *savingsStore) GetByID(ctx *gofr.Context, id int) (*models.Savings, erro
 
 	if withdrawnAmount.Valid {
 		savings.WithdrawnAmount = withdrawnAmount.Float64
+	}
+
+	if description.Valid {
+		savings.Description = description.String
 	}
 
 	return &savings, nil
@@ -148,11 +153,12 @@ func (s *savingsStore) GetAll(ctx *gofr.Context, f *filters.Savings) ([]*models.
 			deletedAt       sql.NullString
 			createdAt       time.Time
 			withdrawnAmount sql.NullFloat64
+			description     sql.NullString
 		)
 
 		err = rows.Scan(&savings.ID, &savings.UserID, &savings.TransactionID, &savings.Category,
 			&savings.Amount, &savings.CurrentValue, &savings.StartDate, &maturityDate,
-			&createdAt, &deletedAt, &savings.Status, &withdrawnAmount)
+			&createdAt, &deletedAt, &savings.Status, &withdrawnAmount, &description)
 		if err != nil {
 			return nil, err
 		}
@@ -171,6 +177,10 @@ func (s *savingsStore) GetAll(ctx *gofr.Context, f *filters.Savings) ([]*models.
 			savings.WithdrawnAmount = withdrawnAmount.Float64
 		}
 
+		if description.Valid {
+			savings.Description = description.String
+		}
+
 		allSavings = append(allSavings, &savings)
 	}
 
@@ -186,7 +196,7 @@ func (s *savingsStore) Update(ctx *gofr.Context, savings *models.Savings, tx *da
 		maturityDate = savings.MaturityDate
 	}
 
-	_, err := tx.ExecContext(ctx, updateSavings, savings.CurrentValue, maturityDate, savings.Status, savings.ID)
+	_, err := tx.ExecContext(ctx, updateSavings, savings.CurrentValue, maturityDate, savings.Status, savings.Description, savings.ID)
 	if err != nil {
 		return err
 	}
@@ -215,7 +225,7 @@ func (s *savingsStore) UpdateWIthTransactionID(ctx *gofr.Context, savings *model
 	}
 
 	_, err := tx.ExecContext(ctx, updateSavingsWithTransactionID, savings.Category, savings.Amount, savings.CurrentValue,
-		startDate, maturityDate, withdrawnAmount, savings.TransactionID)
+		startDate, maturityDate, withdrawnAmount, savings.Status, savings.TransactionID)
 	if err != nil {
 		return err
 	}

@@ -108,17 +108,22 @@ func (s *transactionStore) GetAll(ctx *gofr.Context, f *filters.Transactions) ([
 
 	for rows.Next() {
 		var (
-			transaction     models.Transaction
-			deletedAt       sql.NullString
-			createdAt       time.Time
-			transactionDate time.Time
-			withdrawFrom    sql.NullInt64
-			metaData        sql.NullString
+			transaction         models.Transaction
+			deletedAt           sql.NullString
+			createdAt           time.Time
+			transactionDate     time.Time
+			withdrawFrom        sql.NullInt64
+			metaData            sql.NullString
+			savingID            sql.NullInt64
+			status              sql.NullString
+			savingTransactionID sql.NullInt64
+			savingAmount        sql.NullFloat64
+			savingCurrentValue  sql.NullFloat64
 		)
 
 		err = rows.Scan(&transaction.ID, &transaction.UserID, &transaction.Account.ID, &transaction.Amount, &transaction.Type,
 			&transaction.Category, &transaction.Description, &transactionDate, &createdAt, &deletedAt, &withdrawFrom,
-			&metaData, &transaction.Account.Name)
+			&metaData, &transaction.Account.Name, &savingID, &status, &savingTransactionID, &savingAmount, &savingCurrentValue)
 		if err != nil {
 			return nil, err
 		}
@@ -136,6 +141,26 @@ func (s *transactionStore) GetAll(ctx *gofr.Context, f *filters.Transactions) ([
 
 		if metaData.Valid {
 			_ = json.Unmarshal([]byte(metaData.String), &transaction.MetaData)
+		}
+
+		if status.Valid {
+			transaction.Saving.Status = status.String
+		}
+
+		if savingID.Valid {
+			transaction.Saving.ID = int(savingID.Int64)
+		}
+
+		if savingTransactionID.Valid {
+			transaction.Saving.TransactionID = int(savingTransactionID.Int64)
+		}
+
+		if savingAmount.Valid {
+			transaction.Saving.Amount = savingAmount.Float64
+		}
+
+		if savingCurrentValue.Valid {
+			transaction.Saving.CurrentValue = savingCurrentValue.Float64
 		}
 
 		allTransactions = append(allTransactions, &transaction)
