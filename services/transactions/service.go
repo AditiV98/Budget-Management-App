@@ -190,8 +190,6 @@ func (s *transactionSvc) Update(ctx *gofr.Context, transaction *models.Transacti
 
 	transaction.UserID = userID
 
-	transaction.TransactionDate, _ = convertToMySQLDate(transaction.TransactionDate)
-
 	// Fetch the original transaction to compare values
 	originalTransaction, err := s.GetByID(ctx, transaction.ID)
 	if err != nil {
@@ -204,120 +202,132 @@ func (s *transactionSvc) Update(ctx *gofr.Context, transaction *models.Transacti
 		return nil, err
 	}
 
-	// Reverse the effect of the original transaction
-	if originalTransaction.Type == "INCOME" {
-		account.Balance -= originalTransaction.Amount
-	} else if originalTransaction.Type == "SAVINGS" || originalTransaction.Type == "EXPENSE" {
-		account.Balance += originalTransaction.Amount
-	} else if originalTransaction.Type == "SELF TRANSFER" {
-		fromAcc, err := s.accountSvc.GetByIDForUpdate(ctx, originalTransaction.MetaData.TransferFrom, userID, tx)
-		if err != nil {
-			return nil, err
-		}
-		toAcc, err := s.accountSvc.GetByIDForUpdate(ctx, originalTransaction.MetaData.TransferTo, userID, tx)
-		if err != nil {
-			return nil, err
-		}
+	if originalTransaction.Amount != transaction.Amount || originalTransaction.Type != transaction.Type ||
+		originalTransaction.Category != transaction.Category || originalTransaction.TransactionDate != transaction.TransactionDate {
+		// Reverse the effect of the original transaction
+		if originalTransaction.Type == "INCOME" {
+			account.Balance -= originalTransaction.Amount
+		} else if originalTransaction.Type == "SAVINGS" || originalTransaction.Type == "EXPENSE" {
+			account.Balance += originalTransaction.Amount
+		} else if originalTransaction.Type == "SELF TRANSFER" {
+			fromAcc, err := s.accountSvc.GetByIDForUpdate(ctx, originalTransaction.MetaData.TransferFrom, userID, tx)
+			if err != nil {
+				return nil, err
+			}
 
-		fromAcc.Balance += originalTransaction.Amount
-		toAcc.Balance -= originalTransaction.Amount
+			toAcc, err := s.accountSvc.GetByIDForUpdate(ctx, originalTransaction.MetaData.TransferTo, userID, tx)
+			if err != nil {
+				return nil, err
+			}
 
-		_, err = s.accountSvc.UpdateWithTx(ctx, fromAcc, tx)
-		if err != nil {
-			return nil, err
-		}
-		_, err = s.accountSvc.UpdateWithTx(ctx, toAcc, tx)
-		if err != nil {
-			return nil, err
-		}
-	}
+			fromAcc.Balance += originalTransaction.Amount
+			toAcc.Balance -= originalTransaction.Amount
 
-	// Apply the effect of the updated transaction
-	if transaction.Type == "INCOME" {
-		_, er := s.savingsSvc.GetByTransactionID(ctx, transaction.ID)
-		if er == nil {
-			err = s.savingsSvc.DeleteWithTx(ctx, transaction.ID, tx)
+			_, err = s.accountSvc.UpdateWithTx(ctx, fromAcc, tx)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = s.accountSvc.UpdateWithTx(ctx, toAcc, tx)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		account.Balance += transaction.Amount
-	} else if transaction.Type == "SAVINGS" {
-		savings := &models.Savings{
-			Status:        "ACTIVE",
-			UserID:        transaction.UserID,
-			Amount:        transaction.Amount,
-			Category:      transaction.Category,
-			StartDate:     transaction.TransactionDate,
-			TransactionID: transaction.ID,
-		}
-		// Check if savings entry already exists for this transaction
-		_, err = s.savingsSvc.GetByTransactionID(ctx, transaction.ID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				// Create new savings record if not found
-				err = s.savingsSvc.CreateWithTx(ctx, savings, tx)
+		// Apply the effect of the updated transaction
+		if transaction.Type == "INCOME" {
+			_, er := s.savingsSvc.GetByTransactionID(ctx, transaction.ID)
+			if er == nil {
+				err = s.savingsSvc.DeleteWithTx(ctx, transaction.ID, tx)
 				if err != nil {
 					return nil, err
 				}
+			}
+
+			account.Balance += transaction.Amount
+		} else if transaction.Type == "SAVINGS" {
+			startDate, err := convertToMySQLDate(transaction.TransactionDate)
+			if err != nil {
+				return nil, err
+			}
+
+			savings := &models.Savings{
+				Status:        "ACTIVE",
+				UserID:        transaction.UserID,
+				Amount:        transaction.Amount,
+				Category:      transaction.Category,
+				StartDate:     startDate,
+				TransactionID: transaction.ID,
+			}
+			// Check if savings entry already exists for this transaction
+			_, err = s.savingsSvc.GetByTransactionID(ctx, transaction.ID)
+			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					// Create new savings record if not found
+					err = s.savingsSvc.CreateWithTx(ctx, savings, tx)
+					if err != nil {
+						return nil, err
+					}
+				} else {
+					return nil, err
+				}
 			} else {
-				return nil, err
+				// Update existing if it exists
+				err = s.savingsSvc.UpdateWithTx(ctx, savings, true, tx)
+				if err != nil {
+					return nil, err
+				}
 			}
-		} else {
-			// Update existing if it exists
-			err = s.savingsSvc.UpdateWithTx(ctx, savings, true, tx)
+
+			account.Balance -= transaction.Amount
+		} else if transaction.Type == "EXPENSE" {
+			_, er := s.savingsSvc.GetByTransactionID(ctx, transaction.ID)
+			if er == nil {
+				err = s.savingsSvc.DeleteWithTx(ctx, transaction.ID, tx)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			account.Balance -= transaction.Amount
+		} else if transaction.Type == "SELF TRANSFER" {
+			_, er := s.savingsSvc.GetByTransactionID(ctx, transaction.ID)
+			if er == nil {
+				err = s.savingsSvc.DeleteWithTx(ctx, transaction.ID, tx)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			d := account.Balance - transaction.Amount
+			account.Balance = d
+
+			accountToTransfer, er := s.accountSvc.GetByID(ctx, transaction.MetaData.TransferTo)
+			if er != nil {
+				return nil, er
+			}
+
+			accountToTransfer.Balance += transaction.Amount
+
+			_, err = s.accountSvc.UpdateWithTx(ctx, accountToTransfer, tx)
 			if err != nil {
 				return nil, err
 			}
-		}
 
-		account.Balance -= transaction.Amount
-	} else if transaction.Type == "EXPENSE" {
-		_, er := s.savingsSvc.GetByTransactionID(ctx, transaction.ID)
-		if er == nil {
-			err = s.savingsSvc.DeleteWithTx(ctx, transaction.ID, tx)
+			transaction.MetaData.TransferFrom = account.ID
+
+			updatedTxn := *transaction
+
+			updatedTxn.Account.ID = accountToTransfer.ID
+
+			err = s.transactionStore.Create(ctx, &updatedTxn, tx)
 			if err != nil {
 				return nil, err
 			}
-		}
-
-		account.Balance -= transaction.Amount
-	} else if transaction.Type == "SELF TRANSFER" {
-		_, er := s.savingsSvc.GetByTransactionID(ctx, transaction.ID)
-		if er == nil {
-			err = s.savingsSvc.DeleteWithTx(ctx, transaction.ID, tx)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		d := account.Balance - transaction.Amount
-		account.Balance = d
-
-		accountToTransfer, er := s.accountSvc.GetByID(ctx, transaction.MetaData.TransferTo)
-		if er != nil {
-			return nil, er
-		}
-
-		accountToTransfer.Balance += transaction.Amount
-
-		_, err = s.accountSvc.UpdateWithTx(ctx, accountToTransfer, tx)
-		if err != nil {
-			return nil, err
-		}
-
-		transaction.MetaData.TransferFrom = account.ID
-
-		updatedTxn := *transaction
-
-		updatedTxn.Account.ID = accountToTransfer.ID
-
-		err = s.transactionStore.Create(ctx, &updatedTxn, tx)
-		if err != nil {
-			return nil, err
 		}
 	}
+
+	transaction.TransactionDate, _ = convertToMySQLDate(transaction.TransactionDate)
 
 	// Update transaction record
 	err = s.transactionStore.Update(ctx, transaction, tx)

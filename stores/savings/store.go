@@ -247,7 +247,7 @@ func (s *savingsStore) Delete(ctx *gofr.Context, id int) error {
 func (s *savingsStore) DeleteWithTx(ctx *gofr.Context, txnID int, tx *datasourceSQL.Tx) error {
 	deletedAt := time.Now().UTC().Format("2006-01-02 15:04:05")
 
-	_, err := tx.ExecContext(ctx, deleteSavingsByTransactionID, deletedAt, txnID)
+	_, err := tx.ExecContext(ctx, deleteSavingsByTransactionID, deletedAt, "INACTIVE", txnID)
 	if err != nil {
 		return err
 	}

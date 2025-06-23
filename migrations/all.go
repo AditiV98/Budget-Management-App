@@ -7,7 +7,6 @@ import (
 
 func All() map[int64]migration.Migrate {
 	return map[int64]migration.Migrate{
-
 		20250322124457: create_tables(),
 	}
 }

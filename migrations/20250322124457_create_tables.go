@@ -43,7 +43,7 @@ const (
   withdraw_from INT DEFAULT NULL,
   meta_data JSON DEFAULT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (account_id) REFERENCES accounts(id)
+  FOREIGN KEY (account_id) REFERENCES accounts(id),
   FOREIGN KEY (withdraw_from) REFERENCES transactions(id) 
 );`
 

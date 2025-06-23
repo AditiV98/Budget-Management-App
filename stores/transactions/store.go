@@ -58,7 +58,7 @@ func (s *transactionStore) GetByID(ctx *gofr.Context, id, userID int) (*models.T
 
 	err := ctx.SQL.QueryRowContext(ctx, getByIDTransactions, id, userID).Scan(&transaction.ID, &transaction.UserID,
 		&transaction.Account.ID, &transaction.Amount, &transaction.Type, &transaction.Category, &transaction.Description,
-		&transactionDate, &createdAt, &deletedAt, &withdrawFrom, &metaData, &transaction.Account.Name)
+		&transactionDate, &createdAt, &deletedAt, &withdrawFrom, &metaData, &transaction.Account.ID, &transaction.Account.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -123,7 +123,7 @@ func (s *transactionStore) GetAll(ctx *gofr.Context, f *filters.Transactions) ([
 
 		err = rows.Scan(&transaction.ID, &transaction.UserID, &transaction.Account.ID, &transaction.Amount, &transaction.Type,
 			&transaction.Category, &transaction.Description, &transactionDate, &createdAt, &deletedAt, &withdrawFrom,
-			&metaData, &transaction.Account.Name, &savingID, &status, &savingTransactionID, &savingAmount, &savingCurrentValue)
+			&metaData, &transaction.Account.ID, &transaction.Account.Name, &savingID, &status, &savingTransactionID, &savingAmount, &savingCurrentValue)
 		if err != nil {
 			return nil, err
 		}
