@@ -54,3 +54,14 @@ type RecurringTransactions interface {
 	Delete(ctx *gofr.Context) (interface{}, error)
 	SkipNextRun(ctx *gofr.Context) (interface{}, error)
 }
+
+type TokenGenerator interface {
+	GenerateAuthURLs(c *gofr.Context) (interface{}, error)
+	GenerateTokens(ctx *gofr.Context) (interface{}, error)
+}
+
+type Configs interface {
+	Create(ctx *gofr.Context) (interface{}, error)
+	Get(ctx *gofr.Context) (interface{}, error)
+	Update(ctx *gofr.Context) (interface{}, error)
+}

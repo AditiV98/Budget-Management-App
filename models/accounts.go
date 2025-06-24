@@ -11,4 +11,5 @@ type Account struct {
 	SavingCategories  []string `json:"savingCategories"`
 	CreatedAt         string   `json:"createdAt"`
 	DeletedAt         string   `json:"deletedAt,omitempty"`
+	BankEmailAddress  string   `json:"bankEmailAddress"`
 }

@@ -21,6 +21,7 @@ const (
   name VARCHAR(255),
   type ENUM('BANK', 'CASH', 'WALLET', 'CREDIT CARD') NOT NULL,
   balance FLOAT DEFAULT 0,
+  bank_email_address VARCHAR(255),
   status ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE',
   expense_categories TEXT NOT NULL,
   saving_categories TEXT NOT NULL ,
@@ -84,6 +85,16 @@ deleted_at TIMESTAMP DEFAULT null,
 FOREIGN KEY (user_id) REFERENCES users(id),
 FOREIGN KEY (account_id) REFERENCES accounts(id)
 );`
+
+	createConfigs = `CREATE TABLE configs (
+    user_id         INT NOT NULL,
+    is_auto_read tinyint(1) default 0 not null,
+    refresh_token JSON,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+     UNIQUE (user_id)
+);`
 )
 
 func create_tables() migration.Migrate {
@@ -110,6 +121,11 @@ func create_tables() migration.Migrate {
 			}
 
 			_, err = d.SQL.Exec(createRecurringTransactions)
+			if err != nil {
+				return err
+			}
+
+			_, err = d.SQL.Exec(createConfigs)
 			if err != nil {
 				return err
 			}

@@ -1,11 +1,16 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	"gofr.dev/pkg/gofr"
+	"log"
+	tokenGenerator2 "moneyManagement/handler/tokenGenerator"
 	"moneyManagement/middlewares"
 	"moneyManagement/migrations"
 	"moneyManagement/services/auth"
+	"moneyManagement/services/tokenGenerator"
 	"moneyManagement/stores/accounts"
+	"moneyManagement/stores/configs"
 	"moneyManagement/stores/recurringTransactions"
 	"moneyManagement/stores/savings"
 	"moneyManagement/stores/transactions"
@@ -13,6 +18,7 @@ import (
 
 	validatorSvc "moneyManagement/services/Validator"
 	accountService "moneyManagement/services/accounts"
+	configsService "moneyManagement/services/configs"
 	dashboardService "moneyManagement/services/dashboard"
 	recurringTransactionService "moneyManagement/services/recurringTransactions"
 	savingsService "moneyManagement/services/savings"
@@ -21,6 +27,7 @@ import (
 
 	accountsHandler "moneyManagement/handler/accounts"
 	authHandlers "moneyManagement/handler/auth"
+	configsHandler "moneyManagement/handler/configs"
 	dashboardHandlers "moneyManagement/handler/dashboard"
 	recurringTransactionsHandler "moneyManagement/handler/recurringTransactions"
 	savingsHandler "moneyManagement/handler/savings"
@@ -33,12 +40,19 @@ func main() {
 
 	app.Migrate(migrations.All())
 
+	err := godotenv.Load("./configs/.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	userStore := users.New()
 	accountStore := accounts.New()
 	transactionStore := transactions.New()
 	savingStore := savings.New()
 	recurringTransactionStore := recurringTransactions.New()
+	configsStore := configs.New()
 
+	configsSvc := configsService.New(configsStore)
 	userSvc := usersService.New(userStore)
 	accountSvc := accountService.New(accountStore, userSvc)
 	savingsSvc := savingsService.New(savingStore, transactionStore)
@@ -48,7 +62,9 @@ func main() {
 	authSvc := auth.New(app.Config.Get("REFRESH_SECRET"), app.Config.Get("ACCESS_SECRET"), app.Config.Get("GOOGLE_CLIENT_ID"),
 		app.Config.Get("GOOGLE_CLIENT_SECRET"), app.Config.Get("REDIRECT_URL"))
 	validator := validatorSvc.New(app.Config.Get("ACCESS_SECRET"))
+	tokenSvc := tokenGenerator.New(configsStore)
 
+	configHandler := configsHandler.New(configsSvc)
 	userHandler := usersHandler.New(userSvc)
 	accountHandler := accountsHandler.New(accountSvc)
 	savingHandler := savingsHandler.New(savingsSvc)
@@ -56,6 +72,7 @@ func main() {
 	dashboardHandler := dashboardHandlers.New(dashboardSvc)
 	authHandler := authHandlers.New(authSvc, userSvc)
 	recurringTransactionHandler := recurringTransactionsHandler.New(recurringTransactionSvc)
+	tokenHandler := tokenGenerator2.New(tokenSvc)
 
 	app.UseMiddleware(middlewares.Authorization([]middlewares.ExemptPath{
 		{Path: "^/google-token$", Method: "POST"},
@@ -99,6 +116,13 @@ func main() {
 	app.POST("/google-token", authHandler.CreateToken)
 	app.POST("/login", authHandler.Login)
 	app.POST("/refresh", authHandler.Refresh)
+
+	app.POST("/generate-auth-token", tokenHandler.GenerateAuthURLs)
+	app.PUT("/refresh-token", tokenHandler.GenerateTokens)
+
+	app.POST("/configs", configHandler.Create)
+	app.PUT("/configs", configHandler.Update)
+	app.GET("/configs", configHandler.Get)
 
 	app.Run()
 }

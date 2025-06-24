@@ -57,3 +57,9 @@ type RecurringTransactions interface {
 	Update(ctx *gofr.Context, recurringTransaction *models.RecurringTransaction) error
 	Delete(ctx *gofr.Context, id int) error
 }
+
+type Configs interface {
+	Create(ctx *gofr.Context, userID int) error
+	Update(ctx *gofr.Context, config *models.Config) error
+	Get(ctx *gofr.Context, userID int) (*models.Config, error)
+}

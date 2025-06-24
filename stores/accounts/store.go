@@ -52,10 +52,11 @@ func (s *accountStore) GetByID(ctx *gofr.Context, id, userID int) (*models.Accou
 		deletedAt             sql.NullString
 		expenseCategoriesJSON string
 		savingCategoriesJSON  string
+		bankEmailAddress      sql.NullString
 	)
 
 	err := ctx.SQL.QueryRowContext(ctx, getByIDAccount, id, userID).Scan(&account.ID, &account.UserID, &account.Name,
-		&account.Type, &account.Balance, &account.Status, &expenseCategoriesJSON, &savingCategoriesJSON, &createdAt, &deletedAt)
+		&account.Type, &account.Balance, &account.Status, &expenseCategoriesJSON, &savingCategoriesJSON, &createdAt, &deletedAt, &bankEmailAddress)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -68,6 +69,10 @@ func (s *accountStore) GetByID(ctx *gofr.Context, id, userID int) (*models.Accou
 
 	if deletedAt.Valid {
 		account.DeletedAt = deletedAt.String
+	}
+
+	if bankEmailAddress.Valid {
+		account.BankEmailAddress = bankEmailAddress.String
 	}
 
 	err = json.Unmarshal([]byte(expenseCategoriesJSON), &account.ExpenseCategories)
@@ -90,10 +95,11 @@ func (s *accountStore) GetByIDForUpdate(ctx *gofr.Context, id, userID int, tx *d
 		deletedAt             sql.NullString
 		expenseCategoriesJSON string
 		savingCategoriesJSON  string
+		bankEmailAddress      sql.NullString
 	)
 
 	err := tx.QueryRowContext(ctx, getByIDAccount+" FOR UPDATE;", id, userID).Scan(&account.ID, &account.UserID, &account.Name,
-		&account.Type, &account.Balance, &account.Status, &expenseCategoriesJSON, &savingCategoriesJSON, &createdAt, &deletedAt)
+		&account.Type, &account.Balance, &account.Status, &expenseCategoriesJSON, &savingCategoriesJSON, &createdAt, &deletedAt, &bankEmailAddress)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -106,6 +112,10 @@ func (s *accountStore) GetByIDForUpdate(ctx *gofr.Context, id, userID int, tx *d
 
 	if deletedAt.Valid {
 		account.DeletedAt = deletedAt.String
+	}
+
+	if bankEmailAddress.Valid {
+		account.BankEmailAddress = bankEmailAddress.String
 	}
 
 	err = json.Unmarshal([]byte(expenseCategoriesJSON), &account.ExpenseCategories)
@@ -145,10 +155,11 @@ func (s *accountStore) GetAll(ctx *gofr.Context, f *filters.Account) ([]*models.
 			deletedAt             sql.NullString
 			expenseCategoriesJSON string
 			savingCategoriesJSON  string
+			bankEmailAddress      sql.NullString
 		)
 
 		err = rows.Scan(&account.ID, &account.UserID, &account.Name, &account.Type, &account.Balance, &account.Status,
-			&expenseCategoriesJSON, &savingCategoriesJSON, &createdAt, &deletedAt)
+			&expenseCategoriesJSON, &savingCategoriesJSON, &createdAt, &deletedAt, &bankEmailAddress)
 		if err != nil {
 			return nil, err
 		}
@@ -157,6 +168,10 @@ func (s *accountStore) GetAll(ctx *gofr.Context, f *filters.Account) ([]*models.
 
 		if deletedAt.Valid {
 			account.DeletedAt = deletedAt.String
+		}
+
+		if bankEmailAddress.Valid {
+			account.BankEmailAddress = bankEmailAddress.String
 		}
 
 		err = json.Unmarshal([]byte(expenseCategoriesJSON), &account.ExpenseCategories)
@@ -187,7 +202,7 @@ func (s *accountStore) Update(ctx *gofr.Context, account *models.Account, tx *da
 	}
 
 	result, err := tx.ExecContext(ctx, updateAccount, account.Name, account.Type, account.Balance, account.Status,
-		string(expenseCategoriesJSON), string(savingCategoriesJSON), account.ID, account.UserID)
+		string(expenseCategoriesJSON), string(savingCategoriesJSON), account.BankEmailAddress, account.ID, account.UserID)
 	if err != nil {
 		return err
 	}
